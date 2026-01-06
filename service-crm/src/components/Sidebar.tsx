@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt, Activity, Tag, Package, Megaphone, BarChart3 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useState } from 'react';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'schedule' | 'quotes' | 'reviews' | 'settings';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings';
 
 type SidebarProps = {
   currentPage: Page;
@@ -19,6 +19,10 @@ const navItems: { id: Page; label: string; icon: React.ElementType }[] = [
   { id: 'providers-activity', label: 'Providers Activity', icon: Activity },
   { id: 'payouts', label: 'Payouts', icon: Wallet },
   { id: 'invoices', label: 'Invoices', icon: Receipt },
+  { id: 'coupons', label: 'Coupons', icon: Tag },
+  { id: 'services', label: 'Services', icon: Package },
+  { id: 'marketing', label: 'Marketing', icon: Megaphone },
+  { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'schedule', label: 'Schedule', icon: Calendar },
   { id: 'quotes', label: 'Quotes', icon: FileText },
   { id: 'reviews', label: 'Reviews', icon: Star },
