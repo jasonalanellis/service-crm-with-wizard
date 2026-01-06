@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Clock, Calendar, Save, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { useTenant } from '../context/TenantContext';
+import { Clock, Calendar, Save, Plus, Trash2, Loader2 } from 'lucide-react';
 
 interface BusinessHours {
   day: string;
@@ -24,20 +26,41 @@ const defaultHours: BusinessHours[] = [
   { day: 'Sunday', enabled: false, start: '09:00', end: '14:00' },
 ];
 
-const defaultBlockedDates: BlockedDate[] = [
-  { id: '1', date: '2026-01-01', reason: 'New Year\'s Day' },
-  { id: '2', date: '2026-07-04', reason: 'Independence Day' },
-  { id: '3', date: '2026-12-25', reason: 'Christmas Day' },
-];
-
 export default function ScheduleSettings() {
+  const { tenant } = useTenant();
   const [hours, setHours] = useState<BusinessHours[]>(defaultHours);
-  const [blockedDates, setBlockedDates] = useState<BlockedDate[]>(defaultBlockedDates);
+  const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [bufferTime, setBufferTime] = useState(30);
   const [maxAdvanceBooking, setMaxAdvanceBooking] = useState(30);
   const [minNotice, setMinNotice] = useState(24);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [newBlockedDate, setNewBlockedDate] = useState({ date: '', reason: '' });
+
+  useEffect(() => {
+    if (tenant) fetchSettings();
+  }, [tenant]);
+
+  const fetchSettings = async () => {
+    if (!tenant) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from('tenant_settings')
+      .select('schedule_settings')
+      .eq('tenant_id', tenant.id)
+      .single();
+    
+    if (data?.schedule_settings) {
+      const stored = data.schedule_settings as any;
+      if (stored.hours) setHours(stored.hours);
+      if (stored.blockedDates) setBlockedDates(stored.blockedDates);
+      if (stored.bufferTime) setBufferTime(stored.bufferTime);
+      if (stored.maxAdvanceBooking) setMaxAdvanceBooking(stored.maxAdvanceBooking);
+      if (stored.minNotice) setMinNotice(stored.minNotice);
+    }
+    setLoading(false);
+  };
 
   const toggleDay = (day: string) => {
     setHours(hours.map(h => h.day === day ? { ...h, enabled: !h.enabled } : h));
@@ -53,17 +76,56 @@ export default function ScheduleSettings() {
     if (newBlockedDate.date && newBlockedDate.reason) {
       setBlockedDates([...blockedDates, { id: Date.now().toString(), ...newBlockedDate }]);
       setNewBlockedDate({ date: '', reason: '' });
+      setSaved(false);
     }
   };
 
   const removeBlockedDate = (id: string) => {
     setBlockedDates(blockedDates.filter(d => d.id !== id));
+    setSaved(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!tenant) return;
+    setSaving(true);
+
+    const payload = {
+      hours,
+      blockedDates,
+      bufferTime,
+      maxAdvanceBooking,
+      minNotice
+    };
+
+    const { data: existing } = await supabase
+      .from('tenant_settings')
+      .select('id')
+      .eq('tenant_id', tenant.id)
+      .single();
+
+    if (existing) {
+      await supabase
+        .from('tenant_settings')
+        .update({ schedule_settings: payload, updated_at: new Date().toISOString() })
+        .eq('tenant_id', tenant.id);
+    } else {
+      await supabase
+        .from('tenant_settings')
+        .insert({ tenant_id: tenant.id, schedule_settings: payload });
+    }
+
+    setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+
+  if (!tenant) {
+    return <div className="p-8 text-gray-500">Please select a business from the sidebar</div>;
+  }
+
+  if (loading) {
+    return <div className="p-8 text-gray-500">Loading settings...</div>;
+  }
 
   return (
     <div className="p-4 lg:p-6 max-w-4xl">
@@ -74,12 +136,13 @@ export default function ScheduleSettings() {
         </div>
         <button
           onClick={handleSave}
+          disabled={saving}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
             saved ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-700'
-          } text-white`}
+          } text-white disabled:opacity-50`}
         >
-          <Save size={18} />
-          {saved ? 'Saved!' : 'Save Changes'}
+          {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+          {saved ? 'Saved!' : saving ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
@@ -135,7 +198,7 @@ export default function ScheduleSettings() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Buffer Between Jobs</label>
             <select
               value={bufferTime}
-              onChange={(e) => setBufferTime(Number(e.target.value))}
+              onChange={(e) => { setBufferTime(Number(e.target.value)); setSaved(false); }}
               className="w-full px-3 py-2 border rounded-lg"
             >
               <option value={15}>15 minutes</option>
@@ -148,7 +211,7 @@ export default function ScheduleSettings() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Max Advance Booking</label>
             <select
               value={maxAdvanceBooking}
-              onChange={(e) => setMaxAdvanceBooking(Number(e.target.value))}
+              onChange={(e) => { setMaxAdvanceBooking(Number(e.target.value)); setSaved(false); }}
               className="w-full px-3 py-2 border rounded-lg"
             >
               <option value={7}>1 week</option>
@@ -162,7 +225,7 @@ export default function ScheduleSettings() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Notice</label>
             <select
               value={minNotice}
-              onChange={(e) => setMinNotice(Number(e.target.value))}
+              onChange={(e) => { setMinNotice(Number(e.target.value)); setSaved(false); }}
               className="w-full px-3 py-2 border rounded-lg"
             >
               <option value={2}>2 hours</option>
@@ -181,17 +244,21 @@ export default function ScheduleSettings() {
           Blocked Dates (Holidays)
         </h3>
         <div className="space-y-3 mb-4">
-          {blockedDates.map((d) => (
-            <div key={d.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <span className="font-medium">{new Date(d.date).toLocaleDateString()}</span>
-                <span className="text-gray-500 ml-3">{d.reason}</span>
+          {blockedDates.length === 0 ? (
+            <p className="text-gray-500 text-sm">No blocked dates configured</p>
+          ) : (
+            blockedDates.map((d) => (
+              <div key={d.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <span className="font-medium">{new Date(d.date).toLocaleDateString()}</span>
+                  <span className="text-gray-500 ml-3">{d.reason}</span>
+                </div>
+                <button onClick={() => removeBlockedDate(d.id)} className="p-2 text-gray-400 hover:text-red-600">
+                  <Trash2 size={18} />
+                </button>
               </div>
-              <button onClick={() => removeBlockedDate(d.id)} className="p-2 text-gray-400 hover:text-red-600">
-                <Trash2 size={18} />
-              </button>
-            </div>
-          ))}
+            ))
+          )}
         </div>
         <div className="flex gap-3">
           <input

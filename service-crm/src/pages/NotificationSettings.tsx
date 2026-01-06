@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Bell, Mail, MessageSquare, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { useTenant } from '../context/TenantContext';
+import { Bell, Mail, MessageSquare, Save, Loader2 } from 'lucide-react';
 
 interface NotificationSetting {
   id: string;
@@ -22,8 +24,33 @@ const defaultSettings: NotificationSetting[] = [
 ];
 
 export default function NotificationSettings() {
+  const { tenant } = useTenant();
   const [settings, setSettings] = useState<NotificationSetting[]>(defaultSettings);
+  const [emailSettings, setEmailSettings] = useState({ fromName: '', replyTo: '' });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (tenant) fetchSettings();
+  }, [tenant]);
+
+  const fetchSettings = async () => {
+    if (!tenant) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from('tenant_settings')
+      .select('notification_settings')
+      .eq('tenant_id', tenant.id)
+      .single();
+    
+    if (data?.notification_settings) {
+      const stored = data.notification_settings as any;
+      if (stored.notifications) setSettings(stored.notifications);
+      if (stored.email) setEmailSettings(stored.email);
+    }
+    setLoading(false);
+  };
 
   const toggleSetting = (id: string, channel: 'email' | 'sms' | 'push') => {
     setSettings(settings.map(s => 
@@ -32,10 +59,45 @@ export default function NotificationSettings() {
     setSaved(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!tenant) return;
+    setSaving(true);
+
+    const payload = {
+      notifications: settings,
+      email: emailSettings
+    };
+
+    // Upsert settings
+    const { data: existing } = await supabase
+      .from('tenant_settings')
+      .select('id')
+      .eq('tenant_id', tenant.id)
+      .single();
+
+    if (existing) {
+      await supabase
+        .from('tenant_settings')
+        .update({ notification_settings: payload, updated_at: new Date().toISOString() })
+        .eq('tenant_id', tenant.id);
+    } else {
+      await supabase
+        .from('tenant_settings')
+        .insert({ tenant_id: tenant.id, notification_settings: payload });
+    }
+
+    setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+
+  if (!tenant) {
+    return <div className="p-8 text-gray-500">Please select a business from the sidebar</div>;
+  }
+
+  if (loading) {
+    return <div className="p-8 text-gray-500">Loading settings...</div>;
+  }
 
   return (
     <div className="p-4 lg:p-6 max-w-4xl">
@@ -46,12 +108,13 @@ export default function NotificationSettings() {
         </div>
         <button
           onClick={handleSave}
+          disabled={saving}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
             saved ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-700'
-          } text-white`}
+          } text-white disabled:opacity-50`}
         >
-          <Save size={18} />
-          {saved ? 'Saved!' : 'Save Changes'}
+          {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+          {saved ? 'Saved!' : saving ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
@@ -121,17 +184,29 @@ export default function NotificationSettings() {
         </div>
       </div>
 
-      {/* Email Templates Preview */}
+      {/* Email Settings */}
       <div className="mt-6 bg-white rounded-xl shadow-sm p-6">
         <h3 className="font-semibold text-gray-900 mb-4">Email Settings</h3>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">From Name</label>
-            <input type="text" defaultValue="Bravo Maids" className="w-full px-3 py-2 border rounded-lg" />
+            <input 
+              type="text" 
+              value={emailSettings.fromName}
+              onChange={(e) => { setEmailSettings({ ...emailSettings, fromName: e.target.value }); setSaved(false); }}
+              placeholder="Your Business Name"
+              className="w-full px-3 py-2 border rounded-lg" 
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Reply-To Email</label>
-            <input type="email" defaultValue="support@bravomaids.com" className="w-full px-3 py-2 border rounded-lg" />
+            <input 
+              type="email" 
+              value={emailSettings.replyTo}
+              onChange={(e) => { setEmailSettings({ ...emailSettings, replyTo: e.target.value }); setSaved(false); }}
+              placeholder="support@yourbusiness.com"
+              className="w-full px-3 py-2 border rounded-lg" 
+            />
           </div>
         </div>
       </div>

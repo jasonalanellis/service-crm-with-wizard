@@ -1,38 +1,87 @@
-import { useState } from 'react';
-import { CreditCard, DollarSign, Save, Percent, Gift, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { useTenant } from '../context/TenantContext';
+import { CreditCard, DollarSign, Save, Percent, Gift, Zap, Loader2 } from 'lucide-react';
+
+const defaultSettings = {
+  acceptCash: true,
+  acceptCard: true,
+  acceptCheck: false,
+  autoCharge: true,
+  chargeOnCompletion: true,
+  requireDeposit: false,
+  depositPercent: 25,
+  cancellationFee: 50,
+  lateCancelHours: 24,
+  noShowFee: 75,
+  processingFee: 2.9,
+  passToCustomer: false,
+  allowTips: true,
+  suggestedTips: [15, 20, 25],
+  referralEnabled: true,
+  referrerReward: 25,
+  refereeDiscount: 20,
+};
 
 export default function PaymentSettings() {
+  const { tenant } = useTenant();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [settings, setSettings] = useState({
-    // Payment Methods
-    acceptCash: true,
-    acceptCard: true,
-    acceptCheck: false,
-    // Auto-charge
-    autoCharge: true,
-    chargeOnCompletion: true,
-    requireDeposit: false,
-    depositPercent: 25,
-    // Fees
-    cancellationFee: 50,
-    lateCancelHours: 24,
-    noShowFee: 75,
-    // Processing
-    processingFee: 2.9,
-    passToCustomer: false,
-    // Tips
-    allowTips: true,
-    suggestedTips: [15, 20, 25],
-    // Referrals
-    referralEnabled: true,
-    referrerReward: 25,
-    refereeDiscount: 20,
-  });
+  const [settings, setSettings] = useState(defaultSettings);
 
-  const handleSave = () => {
+  useEffect(() => {
+    if (tenant) fetchSettings();
+  }, [tenant]);
+
+  const fetchSettings = async () => {
+    if (!tenant) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from('tenant_settings')
+      .select('payment_settings')
+      .eq('tenant_id', tenant.id)
+      .single();
+    
+    if (data?.payment_settings) {
+      setSettings({ ...defaultSettings, ...data.payment_settings as any });
+    }
+    setLoading(false);
+  };
+
+  const handleSave = async () => {
+    if (!tenant) return;
+    setSaving(true);
+
+    const { data: existing } = await supabase
+      .from('tenant_settings')
+      .select('id')
+      .eq('tenant_id', tenant.id)
+      .single();
+
+    if (existing) {
+      await supabase
+        .from('tenant_settings')
+        .update({ payment_settings: settings, updated_at: new Date().toISOString() })
+        .eq('tenant_id', tenant.id);
+    } else {
+      await supabase
+        .from('tenant_settings')
+        .insert({ tenant_id: tenant.id, payment_settings: settings });
+    }
+
+    setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+
+  if (!tenant) {
+    return <div className="p-8 text-gray-500">Please select a business from the sidebar</div>;
+  }
+
+  if (loading) {
+    return <div className="p-8 text-gray-500">Loading settings...</div>;
+  }
 
   return (
     <div className="p-4 lg:p-6 max-w-4xl">
@@ -43,12 +92,13 @@ export default function PaymentSettings() {
         </div>
         <button
           onClick={handleSave}
+          disabled={saving}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
             saved ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-700'
-          } text-white`}
+          } text-white disabled:opacity-50`}
         >
-          <Save size={18} />
-          {saved ? 'Saved!' : 'Save Changes'}
+          {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+          {saved ? 'Saved!' : saving ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
@@ -70,7 +120,7 @@ export default function PaymentSettings() {
                 <p className="text-sm text-gray-500">{method.desc}</p>
               </div>
               <button
-                onClick={() => setSettings({ ...settings, [method.key]: !settings[method.key as keyof typeof settings] })}
+                onClick={() => { setSettings({ ...settings, [method.key]: !settings[method.key as keyof typeof settings] }); setSaved(false); }}
                 className={`w-12 h-7 rounded-full transition-colors ${
                   settings[method.key as keyof typeof settings] ? 'bg-blue-600' : 'bg-gray-200'
                 }`}
@@ -97,7 +147,7 @@ export default function PaymentSettings() {
               <p className="text-sm text-gray-500">Automatically charge saved cards</p>
             </div>
             <button
-              onClick={() => setSettings({ ...settings, autoCharge: !settings.autoCharge })}
+              onClick={() => { setSettings({ ...settings, autoCharge: !settings.autoCharge }); setSaved(false); }}
               className={`w-12 h-7 rounded-full transition-colors ${settings.autoCharge ? 'bg-blue-600' : 'bg-gray-200'}`}
             >
               <div className={`w-6 h-6 bg-white rounded-full shadow transform transition-transform ${
@@ -111,7 +161,7 @@ export default function PaymentSettings() {
               <p className="text-sm text-gray-500">Charge partial amount at booking</p>
             </div>
             <button
-              onClick={() => setSettings({ ...settings, requireDeposit: !settings.requireDeposit })}
+              onClick={() => { setSettings({ ...settings, requireDeposit: !settings.requireDeposit }); setSaved(false); }}
               className={`w-12 h-7 rounded-full transition-colors ${settings.requireDeposit ? 'bg-blue-600' : 'bg-gray-200'}`}
             >
               <div className={`w-6 h-6 bg-white rounded-full shadow transform transition-transform ${
@@ -125,7 +175,7 @@ export default function PaymentSettings() {
               <input
                 type="number"
                 value={settings.depositPercent}
-                onChange={(e) => setSettings({ ...settings, depositPercent: Number(e.target.value) })}
+                onChange={(e) => { setSettings({ ...settings, depositPercent: Number(e.target.value) }); setSaved(false); }}
                 className="w-20 px-3 py-1.5 border rounded-lg"
                 min={10}
                 max={100}
@@ -150,7 +200,7 @@ export default function PaymentSettings() {
               <input
                 type="number"
                 value={settings.cancellationFee}
-                onChange={(e) => setSettings({ ...settings, cancellationFee: Number(e.target.value) })}
+                onChange={(e) => { setSettings({ ...settings, cancellationFee: Number(e.target.value) }); setSaved(false); }}
                 className="flex-1 px-3 py-2 border rounded-lg"
               />
             </div>
@@ -163,7 +213,7 @@ export default function PaymentSettings() {
               <input
                 type="number"
                 value={settings.noShowFee}
-                onChange={(e) => setSettings({ ...settings, noShowFee: Number(e.target.value) })}
+                onChange={(e) => { setSettings({ ...settings, noShowFee: Number(e.target.value) }); setSaved(false); }}
                 className="flex-1 px-3 py-2 border rounded-lg"
               />
             </div>
@@ -174,7 +224,7 @@ export default function PaymentSettings() {
               <input
                 type="number"
                 value={settings.processingFee}
-                onChange={(e) => setSettings({ ...settings, processingFee: Number(e.target.value) })}
+                onChange={(e) => { setSettings({ ...settings, processingFee: Number(e.target.value) }); setSaved(false); }}
                 className="w-24 px-3 py-2 border rounded-lg"
                 step={0.1}
               />
@@ -185,7 +235,7 @@ export default function PaymentSettings() {
             <input
               type="checkbox"
               checked={settings.passToCustomer}
-              onChange={(e) => setSettings({ ...settings, passToCustomer: e.target.checked })}
+              onChange={(e) => { setSettings({ ...settings, passToCustomer: e.target.checked }); setSaved(false); }}
               className="w-4 h-4 mr-2"
             />
             <label className="text-sm text-gray-700">Pass processing fee to customer</label>
@@ -205,7 +255,7 @@ export default function PaymentSettings() {
             <p className="text-sm text-gray-500">Let customers add tips during checkout</p>
           </div>
           <button
-            onClick={() => setSettings({ ...settings, allowTips: !settings.allowTips })}
+            onClick={() => { setSettings({ ...settings, allowTips: !settings.allowTips }); setSaved(false); }}
             className={`w-12 h-7 rounded-full transition-colors ${settings.allowTips ? 'bg-blue-600' : 'bg-gray-200'}`}
           >
             <div className={`w-6 h-6 bg-white rounded-full shadow transform transition-transform ${
@@ -226,6 +276,7 @@ export default function PaymentSettings() {
                       const newTips = [...settings.suggestedTips];
                       newTips[i] = Number(e.target.value);
                       setSettings({ ...settings, suggestedTips: newTips });
+                      setSaved(false);
                     }}
                     className="w-12 bg-transparent text-center"
                   />
@@ -249,7 +300,7 @@ export default function PaymentSettings() {
             <p className="text-sm text-gray-500">Reward customers for referring friends</p>
           </div>
           <button
-            onClick={() => setSettings({ ...settings, referralEnabled: !settings.referralEnabled })}
+            onClick={() => { setSettings({ ...settings, referralEnabled: !settings.referralEnabled }); setSaved(false); }}
             className={`w-12 h-7 rounded-full transition-colors ${settings.referralEnabled ? 'bg-blue-600' : 'bg-gray-200'}`}
           >
             <div className={`w-6 h-6 bg-white rounded-full shadow transform transition-transform ${
@@ -266,7 +317,7 @@ export default function PaymentSettings() {
                 <input
                   type="number"
                   value={settings.referrerReward}
-                  onChange={(e) => setSettings({ ...settings, referrerReward: Number(e.target.value) })}
+                  onChange={(e) => { setSettings({ ...settings, referrerReward: Number(e.target.value) }); setSaved(false); }}
                   className="flex-1 px-3 py-2 border rounded-lg"
                 />
                 <span className="text-sm text-gray-500">credit</span>
@@ -279,7 +330,7 @@ export default function PaymentSettings() {
                 <input
                   type="number"
                   value={settings.refereeDiscount}
-                  onChange={(e) => setSettings({ ...settings, refereeDiscount: Number(e.target.value) })}
+                  onChange={(e) => { setSettings({ ...settings, refereeDiscount: Number(e.target.value) }); setSaved(false); }}
                   className="flex-1 px-3 py-2 border rounded-lg"
                 />
                 <span className="text-sm text-gray-500">off first booking</span>
