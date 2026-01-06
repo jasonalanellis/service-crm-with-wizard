@@ -43,39 +43,21 @@ export default function Invoices() {
     if (!tenant) return;
     setLoading(true);
 
-    // Check if invoices table exists, if not create mock data from appointments
-    const [custRes, apptRes] = await Promise.all([
+    const [invRes, custRes] = await Promise.all([
+      supabase.from('invoices').select('*').eq('tenant_id', tenant.id).order('created_at', { ascending: false }),
       supabase.from('customers').select('*').eq('tenant_id', tenant.id),
-      supabase.from('appointments').select('*').eq('tenant_id', tenant.id).eq('status', 'completed').order('scheduled_start', { ascending: false }).limit(20),
     ]);
 
     const custs = custRes.data || [];
     setCustomers(custs);
 
-    // Generate invoices from completed appointments for demo
-    const appointments = apptRes.data || [];
-    const mockInvoices: Invoice[] = appointments.map((appt, index) => {
-      const customer = custs.find(c => c.id === appt.customer_id);
-      const price = appt.price || 150;
-      const tax = price * 0.08;
-      return {
-        id: appt.id,
-        tenant_id: tenant.id,
-        customer_id: appt.customer_id,
-        appointment_id: appt.id,
-        invoice_number: `INV-${String(1000 + index).padStart(4, '0')}`,
-        items: [{ description: 'Cleaning Service', quantity: 1, unit_price: price, total: price }],
-        subtotal: price,
-        tax: Math.round(tax * 100) / 100,
-        total: Math.round((price + tax) * 100) / 100,
-        status: Math.random() > 0.3 ? 'paid' : Math.random() > 0.5 ? 'sent' : 'draft',
-        due_date: appt.scheduled_start,
-        created_at: appt.created_at,
-        customer,
-      } as Invoice;
-    });
+    // Map customers to invoices
+    const invoicesWithCustomers = (invRes.data || []).map(inv => ({
+      ...inv,
+      customer: custs.find(c => c.id === inv.customer_id),
+    }));
 
-    setInvoices(mockInvoices);
+    setInvoices(invoicesWithCustomers);
     setLoading(false);
   };
 

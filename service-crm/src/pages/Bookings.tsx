@@ -209,7 +209,7 @@ export default function Bookings() {
                         <p className="text-xs text-gray-500">{booking.customer?.email}</p>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell text-sm text-gray-600">
-                        {booking.customer?.address || '-'}
+                        {booking.customer?.address_line1 ? `${booking.customer.address_line1}${booking.customer.city ? `, ${booking.customer.city}` : ''}` : '-'}
                       </td>
                       <td className="px-4 py-3">
                         {booking.technician ? (

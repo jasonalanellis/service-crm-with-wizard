@@ -195,7 +195,7 @@ export default function ProvidersActivity() {
                     <p className="text-xs text-gray-500">{activity.customer?.phone}</p>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell text-sm text-gray-600">
-                    {activity.customer?.address || '-'}
+                    {activity.customer?.address_line1 || '-'}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -236,7 +236,7 @@ export default function ProvidersActivity() {
                         </div>
                         <p className="text-sm">{activity.customer?.first_name} {activity.customer?.last_name}</p>
                         <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                          <MapPin size={12} /> {activity.customer?.address || 'No address'}
+                          <MapPin size={12} /> {activity.customer?.address_line1 || 'No address'}
                         </p>
                       </div>
                     ))

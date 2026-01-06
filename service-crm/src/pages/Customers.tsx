@@ -112,7 +112,7 @@ export default function Customers() {
                     <tr key={customer.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <p className="font-medium text-gray-800">{customer.first_name} {customer.last_name}</p>
-                        {customer.address && <p className="text-sm text-gray-500 truncate max-w-[200px]">{customer.address}</p>}
+                        {customer.address_line1 && <p className="text-sm text-gray-500 truncate max-w-[200px]">{customer.address_line1}{customer.city ? `, ${customer.city}` : ''}</p>}
                       </td>
                       <td className="px-4 py-3">
                         {customer.email && <p className="text-sm text-gray-600">{customer.email}</p>}
@@ -241,10 +241,10 @@ function CustomerDetail({ customer, stats, onClose, onEdit }: {
                 <a href={`mailto:${customer.email}`} className="text-blue-600 hover:underline">{customer.email}</a>
               </div>
             )}
-            {customer.address && (
+            {customer.address_line1 && (
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-gray-400" />
-                <span>{customer.address}</span>
+                <span>{customer.address_line1}{customer.address_line2 ? ` ${customer.address_line2}` : ''}{customer.city ? `, ${customer.city}` : ''}{customer.state ? `, ${customer.state}` : ''} {customer.zip || ''}</span>
               </div>
             )}
           </div>
@@ -316,7 +316,10 @@ function CustomerForm({ customer, tenantId, onClose, onSave }: {
     last_name: customer?.last_name || '',
     email: customer?.email || '',
     phone: customer?.phone || '',
-    address: customer?.address || '',
+    address_line1: customer?.address_line1 || '',
+    city: customer?.city || '',
+    state: customer?.state || '',
+    zip: customer?.zip || '',
     notes: customer?.notes || '',
   });
   const [saving, setSaving] = useState(false);
@@ -354,7 +357,12 @@ function CustomerForm({ customer, tenantId, onClose, onSave }: {
             <input placeholder="Email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="border rounded-lg px-3 py-2" />
             <input placeholder="Phone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="border rounded-lg px-3 py-2" />
           </div>
-          <input placeholder="Address" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} className="w-full border rounded-lg px-3 py-2" />
+          <input placeholder="Street Address" value={form.address_line1} onChange={e => setForm(f => ({ ...f, address_line1: e.target.value }))} className="w-full border rounded-lg px-3 py-2" />
+          <div className="grid grid-cols-3 gap-4">
+            <input placeholder="City" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} className="border rounded-lg px-3 py-2" />
+            <input placeholder="State" value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} className="border rounded-lg px-3 py-2" />
+            <input placeholder="ZIP" value={form.zip} onChange={e => setForm(f => ({ ...f, zip: e.target.value }))} className="border rounded-lg px-3 py-2" />
+          </div>
           <textarea placeholder="Notes" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="w-full border rounded-lg px-3 py-2 h-24" />
           <div className="flex justify-end gap-2 pt-4">
             <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
