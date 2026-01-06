@@ -4,6 +4,9 @@ import { useTenant } from '../context/TenantContext';
 import { useToast } from '../context/ToastContext';
 import { format } from 'date-fns';
 import { Search, Plus, X, Phone, Mail, MapPin, Calendar, DollarSign, Edit2 } from 'lucide-react';
+import Avatar from '../components/Avatar';
+import LoadingSkeleton from '../components/LoadingSkeleton';
+import ExportButton from '../components/ExportButton';
 
 export default function Customers() {
   const { tenant } = useTenant();
@@ -60,14 +63,15 @@ export default function Customers() {
   );
 
   if (!tenant) {
-    return <div className="p-8 text-gray-500">Please select a business from the sidebar</div>;
+    return <div className="p-8 text-gray-500 dark:text-gray-400">Please select a business from the sidebar</div>;
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-6">
+    <div className="p-4 lg:p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-800">Customers</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Customers</h1>
         <div className="flex gap-3">
+          <ExportButton data={customers.map(c => ({ name: `${c.first_name} ${c.last_name}`, email: c.email, phone: c.phone }))} filename="customers" />
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
@@ -88,7 +92,7 @@ export default function Customers() {
       </div>
 
       {loading ? (
-        <div className="text-gray-500">Loading...</div>
+        <LoadingSkeleton type="table" count={5} />
       ) : (
         <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
           <div className="overflow-x-auto">

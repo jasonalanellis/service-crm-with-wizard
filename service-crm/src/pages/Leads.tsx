@@ -87,13 +87,13 @@ export default function Leads() {
   };
 
   if (!tenant) {
-    return <div className="p-8 text-gray-500">Please select a business from the sidebar</div>;
+    return <div className="p-8 text-gray-500 dark:text-gray-400">Please select a business from the sidebar</div>;
   }
 
   return (
     <div className="p-4 lg:p-8 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Leads</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Leads</h1>
         <button
           onClick={() => { setSelectedLead(null); setShowForm(true); }}
           className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -103,7 +103,7 @@ export default function Leads() {
       </div>
 
       {loading ? (
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <div className="flex-1 flex gap-4 overflow-x-auto pb-4">
@@ -153,7 +153,7 @@ function KanbanColumn({ status, leads, onSelect, onQuickAction }: {
     <div className={`min-w-[280px] flex flex-col rounded-lg border-2 ${status.color}`} id={status.id}>
       <div className="p-3 font-semibold text-gray-700 border-b flex items-center justify-between">
         <span>{status.label}</span>
-        <span className="bg-white/80 text-sm px-2 py-0.5 rounded">{leads.length}</span>
+        <span className="bg-white dark:bg-gray-800/80 text-sm px-2 py-0.5 rounded">{leads.length}</span>
       </div>
       <SortableContext items={leads.map(l => l.id)} strategy={verticalListSortingStrategy} id={status.id}>
         <div className="flex-1 p-2 space-y-2 min-h-[200px]" data-status={status.id}>
@@ -190,7 +190,7 @@ function LeadCard({ lead, onSelect, onQuickAction }: {
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-white rounded-lg shadow-sm p-3 cursor-pointer hover:shadow-md border"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 cursor-pointer hover:shadow-md border"
       onClick={() => onSelect(lead)}
     >
       <div className="flex items-start gap-2">
@@ -198,13 +198,13 @@ function LeadCard({ lead, onSelect, onQuickAction }: {
           <GripVertical size={16} />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-gray-800 truncate">
+          <p className="font-medium text-gray-900 dark:text-white truncate">
             {lead.first_name} {lead.last_name}
           </p>
           {lead.service_requested && (
-            <p className="text-sm text-gray-500 truncate">{lead.service_requested}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{lead.service_requested}</p>
           )}
-          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
             {lead.source && <span className="bg-gray-100 px-2 py-0.5 rounded">{lead.source}</span>}
             <span className={`flex items-center gap-1 ${daysSinceContact > 3 ? 'text-red-500' : ''}`}>
               <Clock size={12} /> {daysSinceContact}d
@@ -214,12 +214,12 @@ function LeadCard({ lead, onSelect, onQuickAction }: {
       </div>
       <div className="flex gap-1 mt-3 pt-2 border-t" onClick={e => e.stopPropagation()}>
         {lead.phone && (
-          <button onClick={() => onQuickAction(lead, 'call')} className="p-1.5 hover:bg-gray-100 rounded" title="Call">
+          <button onClick={() => onQuickAction(lead, 'call')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Call">
             <Phone size={16} className="text-green-600" />
           </button>
         )}
         {lead.email && (
-          <button onClick={() => onQuickAction(lead, 'email')} className="p-1.5 hover:bg-gray-100 rounded" title="Email">
+          <button onClick={() => onQuickAction(lead, 'email')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Email">
             <Mail size={16} className="text-blue-600" />
           </button>
         )}
@@ -236,22 +236,22 @@ function LeadDetail({ lead, onClose, onEdit, onQuickAction }: {
 }) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-semibold">{lead.first_name} {lead.last_name}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><XIcon size={24} /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300"><XIcon size={24} /></button>
         </div>
         <div className="p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><span className="text-gray-500">Status:</span> <span className="font-medium capitalize">{lead.status.replace('_', ' ')}</span></div>
-            <div><span className="text-gray-500">Source:</span> <span className="font-medium">{lead.source || '-'}</span></div>
-            <div><span className="text-gray-500">Phone:</span> <span className="font-medium">{lead.phone || '-'}</span></div>
-            <div><span className="text-gray-500">Email:</span> <span className="font-medium">{lead.email || '-'}</span></div>
+            <div><span className="text-gray-500 dark:text-gray-400">Status:</span> <span className="font-medium capitalize">{lead.status.replace('_', ' ')}</span></div>
+            <div><span className="text-gray-500 dark:text-gray-400">Source:</span> <span className="font-medium">{lead.source || '-'}</span></div>
+            <div><span className="text-gray-500 dark:text-gray-400">Phone:</span> <span className="font-medium">{lead.phone || '-'}</span></div>
+            <div><span className="text-gray-500 dark:text-gray-400">Email:</span> <span className="font-medium">{lead.email || '-'}</span></div>
           </div>
-          {lead.address && <div className="text-sm"><span className="text-gray-500">Address:</span> <p>{lead.address}</p></div>}
-          {lead.service_requested && <div className="text-sm"><span className="text-gray-500">Service:</span> <p>{lead.service_requested}</p></div>}
-          {lead.notes && <div className="text-sm"><span className="text-gray-500">Notes:</span> <p className="whitespace-pre-wrap">{lead.notes}</p></div>}
-          <div className="text-xs text-gray-500">
+          {lead.address && <div className="text-sm"><span className="text-gray-500 dark:text-gray-400">Address:</span> <p>{lead.address}</p></div>}
+          {lead.service_requested && <div className="text-sm"><span className="text-gray-500 dark:text-gray-400">Service:</span> <p>{lead.service_requested}</p></div>}
+          {lead.notes && <div className="text-sm"><span className="text-gray-500 dark:text-gray-400">Notes:</span> <p className="whitespace-pre-wrap">{lead.notes}</p></div>}
+          <div className="text-xs text-gray-500 dark:text-gray-400">
             Created: {format(new Date(lead.created_at), 'MMM d, yyyy h:mm a')}
             {lead.last_contacted_at && <> | Last Contact: {format(new Date(lead.last_contacted_at), 'MMM d, yyyy')}</>}
           </div>
@@ -322,10 +322,10 @@ function LeadForm({ lead, tenantId, onClose, onSave }: {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-semibold">{lead ? 'Edit Lead' : 'Add Lead'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><XIcon size={24} /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300"><XIcon size={24} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -344,7 +344,7 @@ function LeadForm({ lead, tenantId, onClose, onSave }: {
           </div>
           <textarea placeholder="Notes" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="w-full border rounded-lg px-3 py-2 h-24" />
           <div className="flex justify-end gap-2 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50 dark:bg-gray-900">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
               {saving ? 'Saving...' : 'Save'}
             </button>

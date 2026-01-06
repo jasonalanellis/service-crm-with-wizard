@@ -108,7 +108,7 @@ export default function Services() {
   };
 
   if (!tenant) {
-    return <div className="p-8 text-gray-500">Please select a business from the sidebar</div>;
+    return <div className="p-8 text-gray-500 dark:text-gray-400">Please select a business from the sidebar</div>;
   }
 
   return (
@@ -116,7 +116,7 @@ export default function Services() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Services Catalog</h1>
-          <p className="text-gray-600">Manage your service offerings and pricing</p>
+          <p className="text-gray-600 dark:text-gray-300">Manage your service offerings and pricing</p>
         </div>
         <button
           onClick={() => {
@@ -140,7 +140,7 @@ export default function Services() {
             className={`px-4 py-2 rounded-lg whitespace-nowrap ${
               activeTab === tab 
                 ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-600 hover:bg-gray-100'
+                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             {tab === 'all' ? 'All Services' : tab}
@@ -150,15 +150,15 @@ export default function Services() {
 
       {/* Services List */}
       {loading ? (
-        <div className="text-center py-8 text-gray-500">Loading...</div>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">Loading...</div>
       ) : filteredServices.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No services found. Add your first service!</div>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">No services found. Add your first service!</div>
       ) : (
         <div className="space-y-4">
           {filteredServices.map((service) => (
-            <div key={service.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div key={service.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
               <div 
-                className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:bg-gray-900"
                 onClick={() => setExpandedService(expandedService === service.id ? null : service.id)}
               >
                 <div className="flex items-center gap-4">
@@ -169,15 +169,15 @@ export default function Services() {
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-gray-900">{service.name}</h3>
                       {!service.is_active && (
-                        <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-500 rounded-full">Inactive</span>
+                        <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-500 dark:text-gray-400 rounded-full">Inactive</span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500">{service.description}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{service.description}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-6">
-                  <div className="hidden sm:flex items-center gap-4 text-sm text-gray-600">
+                  <div className="hidden sm:flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
                     <span className="flex items-center gap-1">
                       <DollarSign size={16} />
                       From ${service.base_price}
@@ -207,7 +207,7 @@ export default function Services() {
 
               {/* Expanded Details */}
               {expandedService === service.id && (
-                <div className="border-t p-4 bg-gray-50">
+                <div className="border-t p-4 bg-gray-50 dark:bg-gray-900">
                   <div className="grid md:grid-cols-2 gap-6">
                     {/* Pricing Tiers */}
                     {service.pricing_tiers && service.pricing_tiers.length > 0 && (
@@ -215,7 +215,7 @@ export default function Services() {
                         <h4 className="font-medium text-gray-700 mb-3">Pricing Tiers</h4>
                         <div className="space-y-2">
                           {service.pricing_tiers.map((tier, i) => (
-                            <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg">
+                            <div key={i} className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded-lg">
                               <span className="text-gray-700">{tier.name}</span>
                               <span className="font-semibold text-green-600">${tier.price}</span>
                             </div>
@@ -230,7 +230,7 @@ export default function Services() {
                         <h4 className="font-medium text-gray-700 mb-3">Available Extras</h4>
                         <div className="space-y-2">
                           {service.extras.map((extra, i) => (
-                            <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg">
+                            <div key={i} className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded-lg">
                               <div>
                                 <span className="text-gray-700">{extra.name}</span>
                                 <span className="text-sm text-gray-400 ml-2">+{extra.duration}min</span>
@@ -265,7 +265,7 @@ export default function Services() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md">
             <div className="p-6">
               <h2 className="text-xl font-bold mb-4">
                 {editingService ? 'Edit Service' : 'Add Service'}
@@ -335,7 +335,7 @@ export default function Services() {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 dark:bg-gray-900"
                   >
                     Cancel
                   </button>

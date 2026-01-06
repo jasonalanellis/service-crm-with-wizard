@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { TenantProvider } from './context/TenantContext';
+import { TenantProvider, useTenant } from './context/TenantContext';
 import { ToastProvider } from './context/ToastContext';
 import Sidebar from './components/Sidebar';
+import GlobalSearch from './components/GlobalSearch';
+import ThemeToggle from './components/ThemeToggle';
+import KeyboardShortcuts from './components/KeyboardShortcuts';
 import Dashboard from './pages/Dashboard';
 import Bookings from './pages/Bookings';
 import Leads from './pages/Leads';
@@ -60,7 +63,7 @@ function AuthenticatedApp() {
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'dashboard': return <Dashboard />;
+      case 'dashboard': return <Dashboard onNavigate={(p) => setCurrentPage(p as Page)} />;
       case 'bookings': return <Bookings />;
       case 'leads': return <Leads />;
       case 'customers': return <Customers />;
@@ -109,15 +112,35 @@ function AuthenticatedApp() {
   return (
     <TenantProvider>
       <ToastProvider>
-        <div className="flex h-screen bg-gray-100">
+        <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+          <KeyboardShortcuts onNavigate={(p) => setCurrentPage(p as Page)} />
           <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} onLogout={signOut} />
-          <main className="flex-1 overflow-auto lg:ml-0">
-            <div className="lg:hidden h-16" />
-            {renderPage()}
-          </main>
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Header */}
+            <header className="h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 lg:px-6">
+              <div className="lg:hidden w-10" />
+              <HeaderContent onNavigate={(p) => setCurrentPage(p as Page)} />
+            </header>
+            {/* Main content */}
+            <main className="flex-1 overflow-auto">
+              {renderPage()}
+            </main>
+          </div>
         </div>
       </ToastProvider>
     </TenantProvider>
+  );
+}
+
+function HeaderContent({ onNavigate }: { onNavigate: (page: string) => void }) {
+  const { tenant } = useTenant();
+  return (
+    <>
+      <GlobalSearch tenantId={tenant?.id} onNavigate={onNavigate} />
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+      </div>
+    </>
   );
 }
 

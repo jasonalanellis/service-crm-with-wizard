@@ -3,6 +3,10 @@ import { supabase, Appointment, Technician, Customer, Service } from '../lib/sup
 import { useTenant } from '../context/TenantContext';
 import { format, parseISO, startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns';
 import { Plus, ChevronLeft, ChevronRight, Search, Edit, Trash2 } from 'lucide-react';
+import StatusBadge from '../components/StatusBadge';
+import LoadingSkeleton from '../components/LoadingSkeleton';
+import ExportButton from '../components/ExportButton';
+import Avatar from '../components/Avatar';
 
 type BookingWithRelations = Appointment & {
   customer?: Customer;

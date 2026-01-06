@@ -114,13 +114,13 @@ export default function Schedule() {
   };
 
   if (!tenant) {
-    return <div className="p-8 text-gray-500">Please select a business from the sidebar</div>;
+    return <div className="p-8 text-gray-500 dark:text-gray-400">Please select a business from the sidebar</div>;
   }
 
   return (
     <div className="p-4 lg:p-8 h-full flex flex-col">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Schedule</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Schedule</h1>
         <div className="flex items-center gap-3">
           <select
             value={filterTech}
@@ -143,13 +143,13 @@ export default function Schedule() {
 
       {/* Week Navigation */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))} className="p-2 hover:bg-gray-100 rounded-lg">
+        <button onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
           <ChevronLeft size={24} />
         </button>
         <span className="font-semibold text-gray-700">
           {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d, yyyy')}
         </span>
-        <button onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))} className="p-2 hover:bg-gray-100 rounded-lg">
+        <button onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
           <ChevronRight size={24} />
         </button>
       </div>
@@ -165,15 +165,15 @@ export default function Schedule() {
       </div>
 
       {loading ? (
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
       ) : (
-        <div className="flex-1 overflow-auto bg-white rounded-lg border">
+        <div className="flex-1 overflow-auto bg-white dark:bg-gray-800 rounded-lg border">
           <div className="grid grid-cols-8 min-w-[800px]">
             {/* Time column */}
             <div className="border-r">
               <div className="h-12 border-b" />
               {HOURS.map(hour => (
-                <div key={hour} className="h-[60px] border-b px-2 text-xs text-gray-500 flex items-start pt-1">
+                <div key={hour} className="h-[60px] border-b px-2 text-xs text-gray-500 dark:text-gray-400 flex items-start pt-1">
                   {format(new Date().setHours(hour, 0), 'h a')}
                 </div>
               ))}
@@ -185,7 +185,7 @@ export default function Schedule() {
                 <div className={`h-12 border-b flex flex-col items-center justify-center ${
                   isSameDay(day, new Date()) ? 'bg-blue-50' : ''
                 }`}>
-                  <span className="text-xs text-gray-500">{format(day, 'EEE')}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{format(day, 'EEE')}</span>
                   <span className={`font-semibold ${isSameDay(day, new Date()) ? 'text-blue-600' : 'text-gray-700'}`}>
                     {format(day, 'd')}
                   </span>
@@ -194,7 +194,7 @@ export default function Schedule() {
                   {HOURS.map(hour => (
                     <div
                       key={hour}
-                      className="h-[60px] border-b hover:bg-gray-50 cursor-pointer"
+                      className="h-[60px] border-b hover:bg-gray-50 dark:bg-gray-900 cursor-pointer"
                       onDragOver={e => e.preventDefault()}
                       onDrop={e => handleDrop(e, day, hour)}
                       onClick={() => {
@@ -274,24 +274,24 @@ function AppointmentDetail({ appointment, onClose, onEdit, onDelete }: {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg max-w-md w-full" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full" onClick={e => e.stopPropagation()}>
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-semibold">Appointment Details</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300"><X size={24} /></button>
         </div>
         <div className="p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><span className="text-gray-500">Customer:</span> <p className="font-medium">{cust?.first_name} {cust?.last_name}</p></div>
-            <div><span className="text-gray-500">Technician:</span> <p className="font-medium">{tech?.first_name || 'Unassigned'}</p></div>
-            <div><span className="text-gray-500">Service:</span> <p className="font-medium">{svc?.name || '-'}</p></div>
-            <div><span className="text-gray-500">Status:</span> <p className="font-medium capitalize">{appointment.status}</p></div>
+            <div><span className="text-gray-500 dark:text-gray-400">Customer:</span> <p className="font-medium">{cust?.first_name} {cust?.last_name}</p></div>
+            <div><span className="text-gray-500 dark:text-gray-400">Technician:</span> <p className="font-medium">{tech?.first_name || 'Unassigned'}</p></div>
+            <div><span className="text-gray-500 dark:text-gray-400">Service:</span> <p className="font-medium">{svc?.name || '-'}</p></div>
+            <div><span className="text-gray-500 dark:text-gray-400">Status:</span> <p className="font-medium capitalize">{appointment.status}</p></div>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <Clock size={16} className="text-gray-400" />
             <span>{format(parseISO(appointment.scheduled_start), 'EEEE, MMMM d, yyyy h:mm a')}</span>
           </div>
           {appointment.notes && (
-            <div className="text-sm"><span className="text-gray-500">Notes:</span> <p>{appointment.notes}</p></div>
+            <div className="text-sm"><span className="text-gray-500 dark:text-gray-400">Notes:</span> <p>{appointment.notes}</p></div>
           )}
           <div className="flex gap-2 pt-4 border-t">
             <button onClick={onEdit} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Edit</button>
@@ -355,10 +355,10 @@ function AppointmentForm({ appointment, tenantId, customers, technicians, servic
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg max-w-lg w-full" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-lg w-full" onClick={e => e.stopPropagation()}>
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-semibold">{appointment?.id ? 'Edit Appointment' : 'New Appointment'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300"><X size={24} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <select value={form.customer_id} onChange={e => setForm(f => ({ ...f, customer_id: e.target.value }))} className="w-full border rounded-lg px-3 py-2" required>
@@ -385,7 +385,7 @@ function AppointmentForm({ appointment, tenantId, customers, technicians, servic
           </select>
           <textarea placeholder="Notes" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="w-full border rounded-lg px-3 py-2 h-20" />
           <div className="flex justify-end gap-2 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50 dark:bg-gray-900">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
               {saving ? 'Saving...' : 'Save'}
             </button>

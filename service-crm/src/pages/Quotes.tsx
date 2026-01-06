@@ -73,13 +73,13 @@ export default function Quotes() {
   const filtered = quotes.filter(q => !filterStatus || q.status === filterStatus);
 
   if (!tenant) {
-    return <div className="p-8 text-gray-500">Please select a business from the sidebar</div>;
+    return <div className="p-8 text-gray-500 dark:text-gray-400">Please select a business from the sidebar</div>;
   }
 
   return (
     <div className="p-4 lg:p-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-800">Quotes</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Quotes</h1>
         <div className="flex gap-3">
           <select
             value={filterStatus}
@@ -99,38 +99,38 @@ export default function Quotes() {
       </div>
 
       {loading ? (
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Quote #</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">For</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Total</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Status</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600 hidden md:table-cell">Date</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600">Actions</th>
+                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-300">Quote #</th>
+                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-300">For</th>
+                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-300">Total</th>
+                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-300">Status</th>
+                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-300 hidden md:table-cell">Date</th>
+                  <th className="text-left px-4 py-3 text-sm font-semibold text-gray-600 dark:text-gray-300">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No quotes found</td></tr>
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No quotes found</td></tr>
                 ) : (
                   filtered.map(quote => {
                     const recipient = quote.customer || quote.lead;
                     const statusInfo = STATUSES.find(s => s.id === quote.status);
                     return (
-                      <tr key={quote.id} className="hover:bg-gray-50">
+                      <tr key={quote.id} className="hover:bg-gray-50 dark:bg-gray-900">
                         <td className="px-4 py-3">
                           <span className="font-mono text-sm">#{quote.id.slice(0, 8)}</span>
                         </td>
                         <td className="px-4 py-3">
-                          <p className="font-medium text-gray-800">
+                          <p className="font-medium text-gray-900 dark:text-white">
                             {recipient ? `${(recipient as any).first_name} ${(recipient as any).last_name || ''}` : '-'}
                           </p>
-                          <p className="text-xs text-gray-500">{quote.customer ? 'Customer' : 'Lead'}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{quote.customer ? 'Customer' : 'Lead'}</p>
                         </td>
                         <td className="px-4 py-3 font-semibold">${Number(quote.total).toLocaleString()}</td>
                         <td className="px-4 py-3">
@@ -138,33 +138,33 @@ export default function Quotes() {
                             {statusInfo?.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-500 hidden md:table-cell">
+                        <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
                           {format(new Date(quote.created_at), 'MMM d, yyyy')}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-1">
-                            <button onClick={() => setSelectedQuote(quote)} className="p-1.5 hover:bg-gray-100 rounded" title="View">
-                              <Eye size={16} className="text-gray-600" />
+                            <button onClick={() => setSelectedQuote(quote)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="View">
+                              <Eye size={16} className="text-gray-600 dark:text-gray-300" />
                             </button>
-                            <button onClick={() => copyShareLink(quote)} className="p-1.5 hover:bg-gray-100 rounded" title="Copy Link">
-                              <Copy size={16} className="text-gray-600" />
+                            <button onClick={() => copyShareLink(quote)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Copy Link">
+                              <Copy size={16} className="text-gray-600 dark:text-gray-300" />
                             </button>
                             {quote.status === 'draft' && (
-                              <button onClick={() => updateStatus(quote.id, 'sent')} className="p-1.5 hover:bg-gray-100 rounded" title="Mark Sent">
+                              <button onClick={() => updateStatus(quote.id, 'sent')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Mark Sent">
                                 <FileText size={16} className="text-blue-600" />
                               </button>
                             )}
                             {(quote.status === 'sent' || quote.status === 'viewed') && (
                               <>
-                                <button onClick={() => updateStatus(quote.id, 'accepted')} className="p-1.5 hover:bg-gray-100 rounded" title="Mark Accepted">
+                                <button onClick={() => updateStatus(quote.id, 'accepted')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Mark Accepted">
                                   <Check size={16} className="text-green-600" />
                                 </button>
-                                <button onClick={() => updateStatus(quote.id, 'declined')} className="p-1.5 hover:bg-gray-100 rounded" title="Mark Declined">
+                                <button onClick={() => updateStatus(quote.id, 'declined')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Mark Declined">
                                   <XCircle size={16} className="text-red-600" />
                                 </button>
                               </>
                             )}
-                            <button onClick={() => deleteQuote(quote.id)} className="p-1.5 hover:bg-gray-100 rounded" title="Delete">
+                            <button onClick={() => deleteQuote(quote.id)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded" title="Delete">
                               <Trash2 size={16} className="text-red-600" />
                             </button>
                           </div>
@@ -204,37 +204,37 @@ function QuoteDetail({ quote, onClose, onEdit }: { quote: Quote; onClose: () => 
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-semibold">Quote #{quote.id.slice(0, 8)}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300"><X size={24} /></button>
         </div>
         <div className="p-6 space-y-6">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-gray-500 text-sm">For:</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">For:</p>
               <p className="font-medium text-lg">
                 {recipient ? `${(recipient as any).first_name} ${(recipient as any).last_name || ''}` : '-'}
               </p>
-              {(recipient as any)?.email && <p className="text-sm text-gray-600">{(recipient as any).email}</p>}
+              {(recipient as any)?.email && <p className="text-sm text-gray-600 dark:text-gray-300">{(recipient as any).email}</p>}
             </div>
             <div className="text-right">
-              <p className="text-gray-500 text-sm">Date:</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Date:</p>
               <p>{format(new Date(quote.created_at), 'MMMM d, yyyy')}</p>
               {quote.valid_until && (
-                <p className="text-sm text-gray-500">Valid until: {format(new Date(quote.valid_until), 'MMM d, yyyy')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Valid until: {format(new Date(quote.valid_until), 'MMM d, yyyy')}</p>
               )}
             </div>
           </div>
 
           <div className="border rounded-lg overflow-hidden">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
-                  <th className="text-left px-4 py-2 text-sm font-medium text-gray-600">Item</th>
-                  <th className="text-right px-4 py-2 text-sm font-medium text-gray-600">Qty</th>
-                  <th className="text-right px-4 py-2 text-sm font-medium text-gray-600">Price</th>
-                  <th className="text-right px-4 py-2 text-sm font-medium text-gray-600">Total</th>
+                  <th className="text-left px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">Item</th>
+                  <th className="text-right px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">Qty</th>
+                  <th className="text-right px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">Price</th>
+                  <th className="text-right px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -252,8 +252,8 @@ function QuoteDetail({ quote, onClose, onEdit }: { quote: Quote; onClose: () => 
 
           <div className="flex justify-end">
             <div className="w-64 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">Subtotal:</span><span>${Number(quote.subtotal).toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Tax:</span><span>${Number(quote.tax).toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400">Subtotal:</span><span>${Number(quote.subtotal).toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-400">Tax:</span><span>${Number(quote.tax).toFixed(2)}</span></div>
               <div className="flex justify-between font-semibold text-lg border-t pt-2"><span>Total:</span><span>${Number(quote.total).toFixed(2)}</span></div>
             </div>
           </div>
@@ -346,10 +346,10 @@ function QuoteForm({ quote, tenantId, leads, customers, services, onClose, onSav
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-semibold">{quote ? 'Edit Quote' : 'New Quote'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300"><X size={24} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -398,7 +398,7 @@ function QuoteForm({ quote, tenantId, leads, customers, services, onClose, onSav
                   <button type="button" onClick={() => removeItem(i)} className="text-red-500 hover:text-red-700"><X size={18} /></button>
                 </div>
               ))}
-              {items.length === 0 && <p className="text-sm text-gray-500 text-center py-4">No items added yet</p>}
+              {items.length === 0 && <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No items added yet</p>}
             </div>
           </div>
 
@@ -411,7 +411,7 @@ function QuoteForm({ quote, tenantId, leads, customers, services, onClose, onSav
           </div>
 
           <div className="flex justify-end gap-2 pt-4 border-t">
-            <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50 dark:bg-gray-900">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Quote'}
             </button>
