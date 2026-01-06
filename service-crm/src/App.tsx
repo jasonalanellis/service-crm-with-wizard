@@ -19,10 +19,14 @@ import Schedule from './pages/Schedule';
 import Quotes from './pages/Quotes';
 import Reviews from './pages/Reviews';
 import Settings from './pages/Settings';
+import NotificationSettings from './pages/NotificationSettings';
+import ScheduleSettings from './pages/ScheduleSettings';
+import PaymentSettings from './pages/PaymentSettings';
+import PortalSettings from './pages/PortalSettings';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -46,6 +50,10 @@ function AuthenticatedApp() {
       case 'quotes': return <Quotes />;
       case 'reviews': return <Reviews />;
       case 'settings': return <Settings />;
+      case 'notification-settings': return <NotificationSettings />;
+      case 'schedule-settings': return <ScheduleSettings />;
+      case 'payment-settings': return <PaymentSettings />;
+      case 'portal-settings': return <PortalSettings />;
       default: return <Dashboard />;
     }
   };

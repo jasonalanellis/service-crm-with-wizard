@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt, Activity, Tag, Package, Megaphone, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt, Activity, Tag, Package, Megaphone, BarChart3, Bell, Clock, CreditCard, Globe } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useState } from 'react';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings';
 
 type SidebarProps = {
   currentPage: Page;
@@ -27,6 +27,10 @@ const navItems: { id: Page; label: string; icon: React.ElementType }[] = [
   { id: 'quotes', label: 'Quotes', icon: FileText },
   { id: 'reviews', label: 'Reviews', icon: Star },
   { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'notification-settings', label: 'Notifications', icon: Bell },
+  { id: 'schedule-settings', label: 'Schedule Settings', icon: Clock },
+  { id: 'payment-settings', label: 'Payment Settings', icon: CreditCard },
+  { id: 'portal-settings', label: 'Portal Settings', icon: Globe },
 ];
 
 export default function Sidebar({ currentPage, onNavigate, onLogout }: SidebarProps) {
