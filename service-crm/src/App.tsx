@@ -8,6 +8,8 @@ import Bookings from './pages/Bookings';
 import Leads from './pages/Leads';
 import Customers from './pages/Customers';
 import ServiceProviders from './pages/ServiceProviders';
+import Payouts from './pages/Payouts';
+import Invoices from './pages/Invoices';
 import Schedule from './pages/Schedule';
 import Quotes from './pages/Quotes';
 import Reviews from './pages/Reviews';
@@ -15,7 +17,7 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'schedule' | 'quotes' | 'reviews' | 'settings';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'schedule' | 'quotes' | 'reviews' | 'settings';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -28,6 +30,8 @@ function AuthenticatedApp() {
       case 'leads': return <Leads />;
       case 'customers': return <Customers />;
       case 'service-providers': return <ServiceProviders />;
+      case 'payouts': return <Payouts />;
+      case 'invoices': return <Invoices />;
       case 'schedule': return <Schedule />;
       case 'quotes': return <Quotes />;
       case 'reviews': return <Reviews />;

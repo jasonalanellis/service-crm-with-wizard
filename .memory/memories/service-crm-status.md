@@ -20,13 +20,16 @@ Built MVP: 11 tables, 3 apps, 4 edge functions, media bucket
 - Analyzed missing features (see below)
 - Decision: Build features ONE AT A TIME (sequential, safe)
 - ✅ Added Bookings page (list view with date, client, address, provider, payment, revenue)
+- ✅ Added Service Providers page (name, email, phone, wage, rating, add/edit/delete)
+- ✅ Added Payouts page (earned, paid, due per technician, monthly view)
+- ✅ Added Invoices page (invoice list with status, amounts, view/edit/send)
 
 ---
 ## FEATURE BACKLOG (from ConvertLabs analysis)
 
 ### Priority 1 - Core Pages
 - [x] Bookings list (date, client, address, provider, payment, revenue) ✅
-- [ ] Service Providers page (wage, rating, contact)
+- [x] Service Providers page (wage, rating, contact) ✅
 - [ ] Providers Activity (today's jobs per provider)
 - [ ] Payouts (track technician earnings)
 - [ ] Invoices
