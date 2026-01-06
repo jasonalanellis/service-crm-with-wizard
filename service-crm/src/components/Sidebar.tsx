@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt, Activity } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useState } from 'react';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'schedule' | 'quotes' | 'reviews' | 'settings';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'schedule' | 'quotes' | 'reviews' | 'settings';
 
 type SidebarProps = {
   currentPage: Page;
@@ -16,6 +16,7 @@ const navItems: { id: Page; label: string; icon: React.ElementType }[] = [
   { id: 'leads', label: 'Leads', icon: UserPlus },
   { id: 'customers', label: 'Customers', icon: Users },
   { id: 'service-providers', label: 'Service Providers', icon: Wrench },
+  { id: 'providers-activity', label: 'Providers Activity', icon: Activity },
   { id: 'payouts', label: 'Payouts', icon: Wallet },
   { id: 'invoices', label: 'Invoices', icon: Receipt },
   { id: 'schedule', label: 'Schedule', icon: Calendar },
