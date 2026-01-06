@@ -4,7 +4,7 @@
 
 ---
 ## URLS
-- Admin: https://vck4b0t25wgd.space.minimax.io
+- Admin: https://ex1tuoy0xhd0.space.minimax.io
 - Technician App: https://qpzi6faccegl.space.minimax.io
 - Booking Portal: https://4w71xzq5ogw8.space.minimax.io/?tenant=bravo-maids
 - Supabase: yglaxwekbyfjmbhcwqhi
@@ -18,12 +18,14 @@ Built MVP: 11 tables, 3 apps, 4 edge functions, media bucket
 ### Session 2 (Jan 6, ~11pm) - IN PROGRESS
 - Reviewed 29 ConvertLabs UI screenshots (saved in /workspace/imgs/cl_*.png)
 - Analyzed missing features (see below)
+- Decision: Build features ONE AT A TIME (sequential, safe)
+- ✅ Added Bookings page (list view with date, client, address, provider, payment, revenue)
 
 ---
 ## FEATURE BACKLOG (from ConvertLabs analysis)
 
 ### Priority 1 - Core Pages
-- [ ] Bookings list (date, client, address, provider, payment, revenue)
+- [x] Bookings list (date, client, address, provider, payment, revenue) ✅
 - [ ] Service Providers page (wage, rating, contact)
 - [ ] Providers Activity (today's jobs per provider)
 - [ ] Payouts (track technician earnings)

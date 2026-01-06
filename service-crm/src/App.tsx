@@ -4,6 +4,7 @@ import { TenantProvider } from './context/TenantContext';
 import { ToastProvider } from './context/ToastContext';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
+import Bookings from './pages/Bookings';
 import Leads from './pages/Leads';
 import Customers from './pages/Customers';
 import Schedule from './pages/Schedule';
@@ -13,7 +14,7 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 
-type Page = 'dashboard' | 'leads' | 'customers' | 'schedule' | 'quotes' | 'reviews' | 'settings';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'schedule' | 'quotes' | 'reviews' | 'settings';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -22,6 +23,7 @@ function AuthenticatedApp() {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard': return <Dashboard />;
+      case 'bookings': return <Bookings />;
       case 'leads': return <Leads />;
       case 'customers': return <Customers />;
       case 'schedule': return <Schedule />;
