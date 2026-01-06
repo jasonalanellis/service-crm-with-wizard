@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, UserPlus, Calendar, FileText, Star, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Calendar, FileText, Star, Settings, Menu, X, LogOut } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useState } from 'react';
 
@@ -7,6 +7,7 @@ type Page = 'dashboard' | 'leads' | 'customers' | 'schedule' | 'quotes' | 'revie
 type SidebarProps = {
   currentPage: Page;
   onNavigate: (page: Page) => void;
+  onLogout?: () => void;
 };
 
 const navItems: { id: Page; label: string; icon: React.ElementType }[] = [
@@ -19,7 +20,7 @@ const navItems: { id: Page; label: string; icon: React.ElementType }[] = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
-export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
+export default function Sidebar({ currentPage, onNavigate, onLogout }: SidebarProps) {
   const { tenant, tenants, setTenant } = useTenant();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -94,6 +95,15 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
             </div>
           ) : (
             <p>Select a business above</p>
+          )}
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="mt-3 w-full flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-gray-800 rounded-lg transition-colors"
+            >
+              <LogOut size={18} />
+              <span>Logout</span>
+            </button>
           )}
         </div>
       </aside>
