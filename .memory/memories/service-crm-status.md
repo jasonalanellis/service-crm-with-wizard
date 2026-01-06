@@ -17,6 +17,14 @@
 - [ ] Import ConvertLabs data
 - [ ] Add second tenant (Clean Town & Country)
 
+### ConvertLabs Features to Add (from screenshots)
+- [ ] Service Providers page (technician mgmt with wage/rating)
+- [ ] Payouts page (technician earnings tracking)
+- [ ] Invoices page
+- [ ] Bookings list view
+- [ ] Providers Activity page
+- [ ] Discounts
+
 ### Key Files
 - Full doc: /workspace/docs/SERVICE-CRM-PROJECT.md
 - Code: /workspace/code/supabase/
