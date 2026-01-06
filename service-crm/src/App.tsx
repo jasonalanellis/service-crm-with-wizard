@@ -57,8 +57,28 @@ import Contracts from './pages/Contracts';
 import AuditLog from './pages/AuditLog';
 import Equipment from './pages/Equipment';
 import ServiceZones from './pages/ServiceZones';
+import EmailTemplates from './pages/EmailTemplates';
+import SMSTemplates from './pages/SMSTemplates';
+import RecurringBookings from './pages/RecurringBookings';
+import RevenueForecast from './pages/RevenueForecast';
+import GiftCards from './pages/GiftCards';
+import CustomerSegments from './pages/CustomerSegments';
+import StaffCertifications from './pages/StaffCertifications';
+import PackageBuilder from './pages/PackageBuilder';
+import BusinessHoursExceptions from './pages/BusinessHoursExceptions';
+import CustomerSurveys from './pages/CustomerSurveys';
+import KnowledgeBase from './pages/KnowledgeBase';
+import CapacityPlanning from './pages/CapacityPlanning';
+import PriceRules from './pages/PriceRules';
+import Deposits from './pages/Deposits';
+import Suppliers from './pages/Suppliers';
+import SLAs from './pages/SLAs';
+import AutoScheduler from './pages/AutoScheduler';
+import ResourceOptimization from './pages/ResourceOptimization';
+import PerformanceScorecard from './pages/PerformanceScorecard';
+import MultiLocationDashboard from './pages/MultiLocationDashboard';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'payment-history' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'payment-history' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones' | 'email-templates' | 'sms-templates' | 'recurring-bookings' | 'revenue-forecast' | 'gift-cards' | 'customer-segments' | 'staff-certifications' | 'package-builder' | 'business-hours-exceptions' | 'customer-surveys' | 'knowledge-base' | 'capacity-planning' | 'price-rules' | 'deposits' | 'suppliers' | 'slas' | 'auto-scheduler' | 'resource-optimization' | 'performance-scorecard' | 'multi-location';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -108,6 +128,26 @@ function AuthenticatedApp() {
       case 'audit-log': return <AuditLog />;
       case 'equipment': return <Equipment />;
       case 'service-zones': return <ServiceZones />;
+      case 'email-templates': return <EmailTemplates />;
+      case 'sms-templates': return <SMSTemplates />;
+      case 'recurring-bookings': return <RecurringBookings />;
+      case 'revenue-forecast': return <RevenueForecast />;
+      case 'gift-cards': return <GiftCards />;
+      case 'customer-segments': return <CustomerSegments />;
+      case 'staff-certifications': return <StaffCertifications />;
+      case 'package-builder': return <PackageBuilder />;
+      case 'business-hours-exceptions': return <BusinessHoursExceptions />;
+      case 'customer-surveys': return <CustomerSurveys />;
+      case 'knowledge-base': return <KnowledgeBase />;
+      case 'capacity-planning': return <CapacityPlanning />;
+      case 'price-rules': return <PriceRules />;
+      case 'deposits': return <Deposits />;
+      case 'suppliers': return <Suppliers />;
+      case 'slas': return <SLAs />;
+      case 'auto-scheduler': return <AutoScheduler />;
+      case 'resource-optimization': return <ResourceOptimization />;
+      case 'performance-scorecard': return <PerformanceScorecard />;
+      case 'multi-location': return <MultiLocationDashboard />;
       default: return <Dashboard />;
     }
   };

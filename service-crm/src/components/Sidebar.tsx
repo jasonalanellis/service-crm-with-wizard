@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt, Activity, Tag, Package, Megaphone, BarChart3, Bell, Clock, CreditCard, Globe, Plug, Box, DollarSign, MapPin, Banknote, MessageSquare, Gift, ClipboardList, Share2, RefreshCw, TrendingUp, UsersRound, FileSignature, CheckSquare, History, HardDrive, Map, ChevronDown, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt, Activity, Tag, Package, Megaphone, BarChart3, Bell, Clock, CreditCard, Globe, Plug, Box, DollarSign, MapPin, Banknote, MessageSquare, Gift, ClipboardList, Share2, RefreshCw, TrendingUp, UsersRound, FileSignature, CheckSquare, History, HardDrive, Map, ChevronDown, ChevronRight, Mail, Smartphone, Repeat, Award, Filter, BookOpen, Gauge, Wand2, Shield, Truck, Trophy, Building2 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useState } from 'react';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'payment-history' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'payment-history' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones' | 'email-templates' | 'sms-templates' | 'recurring-bookings' | 'revenue-forecast' | 'gift-cards' | 'customer-segments' | 'staff-certifications' | 'package-builder' | 'business-hours-exceptions' | 'customer-surveys' | 'knowledge-base' | 'capacity-planning' | 'price-rules' | 'deposits' | 'suppliers' | 'slas' | 'auto-scheduler' | 'resource-optimization' | 'performance-scorecard' | 'multi-location';
 
 type SidebarProps = {
   currentPage: Page;
@@ -32,6 +32,8 @@ const navGroups: NavGroup[] = [
       { id: 'customers', label: 'All Customers', icon: Users },
       { id: 'leads', label: 'Leads', icon: UserPlus },
       { id: 'loyalty', label: 'Loyalty', icon: Gift },
+      { id: 'customer-segments', label: 'Segments', icon: Filter },
+      { id: 'gift-cards', label: 'Gift Cards', icon: CreditCard },
       { id: 'referrals', label: 'Referrals', icon: Share2 },
       { id: 'tags', label: 'Tags', icon: Tag },
     ]
@@ -44,6 +46,9 @@ const navGroups: NavGroup[] = [
       { id: 'service-providers', label: 'Providers', icon: Wrench },
       { id: 'providers-activity', label: 'Activity', icon: Activity },
       { id: 'checklists', label: 'Checklists', icon: CheckSquare },
+      { id: 'staff-certifications', label: 'Certifications', icon: Award },
+      { id: 'slas', label: 'SLAs', icon: Shield },
+      { id: 'auto-scheduler', label: 'Auto Schedule', icon: Wand2 },
       { id: 'payroll', label: 'Payroll', icon: Banknote },
     ]
   },
@@ -63,6 +68,9 @@ const navGroups: NavGroup[] = [
     icon: Package,
     items: [
       { id: 'services', label: 'Services', icon: Package },
+      { id: 'package-builder', label: 'Packages', icon: Package },
+      { id: 'price-rules', label: 'Price Rules', icon: DollarSign },
+      { id: 'suppliers', label: 'Suppliers', icon: Truck },
       { id: 'inventory', label: 'Inventory', icon: Box },
       { id: 'equipment', label: 'Equipment', icon: HardDrive },
       { id: 'locations', label: 'Locations', icon: MapPin },
@@ -77,6 +85,8 @@ const navGroups: NavGroup[] = [
       { id: 'notifications', label: 'Notifications', icon: Bell },
       { id: 'follow-ups', label: 'Follow-Ups', icon: RefreshCw },
       { id: 'reviews', label: 'Reviews', icon: Star },
+      { id: 'customer-surveys', label: 'Surveys', icon: ClipboardList },
+      { id: 'knowledge-base', label: 'Knowledge Base', icon: BookOpen },
     ]
   },
   {
@@ -93,6 +103,11 @@ const navGroups: NavGroup[] = [
     icon: BarChart3,
     items: [
       { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+      { id: 'revenue-forecast', label: 'Revenue Forecast', icon: TrendingUp },
+      { id: 'capacity-planning', label: 'Capacity', icon: Gauge },
+      { id: 'resource-optimization', label: 'Resources', icon: Gauge },
+      { id: 'performance-scorecard', label: 'Scorecard', icon: Trophy },
+      { id: 'multi-location', label: 'Locations', icon: Building2 },
       { id: 'reports', label: 'Reports', icon: BarChart3 },
       { id: 'audit-log', label: 'Audit Log', icon: History },
     ]
@@ -107,6 +122,11 @@ const navGroups: NavGroup[] = [
       { id: 'payment-settings', label: 'Payments', icon: CreditCard },
       { id: 'portal-settings', label: 'Portal', icon: Globe },
       { id: 'integration-settings', label: 'Integrations', icon: Plug },
+      { id: 'email-templates', label: 'Email Templates', icon: Mail },
+      { id: 'sms-templates', label: 'SMS Templates', icon: Smartphone },
+      { id: 'recurring-bookings', label: 'Recurring', icon: Repeat },
+      { id: 'business-hours-exceptions', label: 'Hours Exceptions', icon: Clock },
+      { id: 'deposits', label: 'Deposits', icon: Wallet },
     ]
   },
 ];
