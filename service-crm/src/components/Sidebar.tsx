@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt, Activity, Tag, Package, Megaphone, BarChart3, Bell, Clock, CreditCard, Globe, Plug } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt, Activity, Tag, Package, Megaphone, BarChart3, Bell, Clock, CreditCard, Globe, Plug, Box, DollarSign, ClockIcon, MapPin, Banknote } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useState } from 'react';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'payment-history' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll';
 
 type SidebarProps = {
   currentPage: Page;
@@ -19,8 +19,14 @@ const navItems: { id: Page; label: string; icon: React.ElementType }[] = [
   { id: 'providers-activity', label: 'Providers Activity', icon: Activity },
   { id: 'payouts', label: 'Payouts', icon: Wallet },
   { id: 'invoices', label: 'Invoices', icon: Receipt },
+  { id: 'payment-history', label: 'Payment History', icon: CreditCard },
   { id: 'coupons', label: 'Coupons', icon: Tag },
   { id: 'services', label: 'Services', icon: Package },
+  { id: 'inventory', label: 'Inventory', icon: Box },
+  { id: 'expenses', label: 'Expenses', icon: DollarSign },
+  { id: 'waitlist', label: 'Waitlist', icon: Clock },
+  { id: 'locations', label: 'Locations', icon: MapPin },
+  { id: 'payroll', label: 'Payroll', icon: Banknote },
   { id: 'marketing', label: 'Marketing', icon: Megaphone },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'schedule', label: 'Schedule', icon: Calendar },

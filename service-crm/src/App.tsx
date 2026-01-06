@@ -24,11 +24,20 @@ import ScheduleSettings from './pages/ScheduleSettings';
 import PaymentSettings from './pages/PaymentSettings';
 import PortalSettings from './pages/PortalSettings';
 import IntegrationSettings from './pages/IntegrationSettings';
+import PaymentHistory from './pages/PaymentHistory';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import BookingPortal from './pages/BookingPortal';
+import CustomerPortal from './pages/CustomerPortal';
+import SubmitReview from './pages/SubmitReview';
+import ManageBooking from './pages/ManageBooking';
+import Inventory from './pages/Inventory';
+import Expenses from './pages/Expenses';
+import Waitlist from './pages/Waitlist';
+import Locations from './pages/Locations';
+import Payroll from './pages/Payroll';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'payment-history' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -57,6 +66,12 @@ function AuthenticatedApp() {
       case 'payment-settings': return <PaymentSettings />;
       case 'portal-settings': return <PortalSettings />;
       case 'integration-settings': return <IntegrationSettings />;
+      case 'payment-history': return <PaymentHistory />;
+      case 'inventory': return <Inventory />;
+      case 'expenses': return <Expenses />;
+      case 'waitlist': return <Waitlist />;
+      case 'locations': return <Locations />;
+      case 'payroll': return <Payroll />;
       default: return <Dashboard />;
     }
   };
@@ -87,6 +102,21 @@ function AppContent() {
       return <TenantProvider explicitTenantId={tenantId}><ToastProvider><BookingPortal /></ToastProvider></TenantProvider>;
     }
     return <div className="p-8 text-center text-gray-600">Tenant ID not specified. Please use a valid booking link.</div>;
+  }
+
+  // Handle customer portal route
+  if (window.location.pathname.startsWith('/portal')) {
+    return <ToastProvider><CustomerPortal /></ToastProvider>;
+  }
+
+  // Handle review submission route
+  if (window.location.pathname.startsWith('/review')) {
+    return <ToastProvider><SubmitReview /></ToastProvider>;
+  }
+
+  // Handle manage booking route (reschedule/cancel)
+  if (window.location.pathname.startsWith('/manage')) {
+    return <ToastProvider><ManageBooking /></ToastProvider>;
   }
 
   if (loading) {
