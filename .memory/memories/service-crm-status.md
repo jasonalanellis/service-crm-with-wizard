@@ -17,13 +17,28 @@
 - [ ] Import ConvertLabs data
 - [ ] Add second tenant (Clean Town & Country)
 
-### ConvertLabs Features to Add (from screenshots)
-- [ ] Service Providers page (technician mgmt with wage/rating)
-- [ ] Payouts page (technician earnings tracking)
-- [ ] Invoices page
-- [ ] Bookings list view
-- [ ] Providers Activity page
-- [ ] Discounts
+### ConvertLabs Features Analysis (29 screenshots)
+
+**Core Pages Missing:**
+- [ ] Bookings list view (date, client, address, provider, payment, revenue)
+- [ ] Service Providers page (name, email, phone, wage, rating)
+- [ ] Providers Activity (today's jobs by provider, list/board view)
+- [ ] Payouts (earned, adjustment, due, status, paid - per provider)
+- [ ] Invoices (client, date, amount, status)
+- [ ] Discounts page
+- [ ] Marketing (leads, campaigns, widgets, views graph)
+
+**Settings Enhancements:**
+- [ ] Services tab (service catalog with pricing, extras, durations)
+- [ ] Payment tab (auto charge, sales tax, same day fee, cancellation, referrals)
+- [ ] Time & Scheduling (business hours, blocked dates, arrival window)
+- [ ] Portals (customer portal subdomain, provider portal settings)
+- [ ] Notifications (email toggles per event type)
+- [ ] Integrations tab
+
+**Other:**
+- [ ] Getting Started checklist
+- [ ] Websites/Domains management (lower priority - we use separate hosting)
 
 ### Key Files
 - Full doc: /workspace/docs/SERVICE-CRM-PROJECT.md
