@@ -1,118 +1,133 @@
 # Local Service CRM Project
 
 **Created:** January 6, 2026
-**Updated:** January 6, 2026 (Session 1 - Final)
-**Status:** MVP Built - Demo Stage (not production-secured yet)
+**Updated:** January 6, 2026 (Session 1 - COMPLETE)
+**Status:** MVP Built - Ready for Auth + Data Migration
 
 ---
 
-## Architecture Decision: Simplified Stack
+## SESSION 1 SUMMARY
+
+### What Was Built Tonight
+
+| Component | Status | URL/Location |
+|-----------|--------|--------------|
+| Database (11 tables) | ✅ Done | Supabase: jellis-vectors |
+| Row Level Security | ✅ Done | All tables secured |
+| Admin Dashboard | ✅ Done | https://vck4b0t25wgd.space.minimax.io |
+| Technician Mobile App | ✅ Done | https://qpzi6faccegl.space.minimax.io |
+| Customer Booking Portal | ✅ Done | https://4w71xzq5ogw8.space.minimax.io/?tenant=bravo-maids |
+| 4 Edge Functions | ✅ Done | See API section |
+| Media Storage Bucket | ✅ Done | 50MB limit, images + videos |
+| AI Media Library Table | ✅ Done | For Veo3/Sora output storage |
+
+---
+
+## Architecture: Simplified Stack
 
 ### KEEP
-- **Supabase** - Database + Auth + Storage + Edge Functions (consolidate everything here)
+- **Supabase** - Database + Auth + Storage + Edge Functions
 - **Vercel** - Website hosting
-- **Buffer** - Social media scheduling ($15/mo) - REPLACES Blotato
+- **Buffer** - Social media scheduling ($15/mo)
 - **Twilio** - SMS notifications
-- **SendGrid** - Email (or Resend)
-- **n8n** - CRM automations only (NOT social media)
+- **Resend** - Email (simpler than SendGrid)
+- **n8n** - CRM automations only
 
 ### DROP
 - Blotato → Buffer
 - ConvertLabs → This CRM
-- Notion (for content) → Buffer handles scheduling
-- Hostinger PostgreSQL → Consolidate to Supabase
-- Kie.ai → Too complex, low ROI
-- Complex AI social workflows → Manual scheduling in Buffer
-
-### Why This Works
-- Buffer stores social media images on THEIR servers
-- Supabase Storage handles CRM images (job photos, etc.)
-- Database only stores URLs, never files
-- Supabase Pro ($25/mo) = 8GB database + 100GB storage = years of capacity
+- Notion (for content) → Buffer
+- Hostinger PostgreSQL → Supabase
+- Complex AI auto-posting → AI generates, you review, Buffer posts
 
 ---
 
-## What Was Built (Session 1)
+## Database Schema (Supabase)
 
-### 1. Database Schema (Supabase)
 **Project:** jellis-vectors (yglaxwekbyfjmbhcwqhi)
 
-**Tables Created (10):**
+**Tables (11):**
 | Table | Purpose |
 |-------|---------|
-| `tenants` | Businesses using the platform (multi-tenant root) |
+| `tenants` | Businesses (multi-tenant root) |
 | `customers` | End customers with JSONB industry_fields |
-| `technicians` | Service workers with location/skills |
-| `services` | Service catalog with pricing |
-| `appointments` | Jobs with status tracking, delay notifications |
+| `technicians` | Service workers |
+| `services` | Service catalog |
+| `appointments` | Jobs with status tracking |
 | `communication_logs` | SMS/email history |
-| `reviews` | Review request tracking |
-| `payments` | Stripe-ready payment records |
-| `leads` | Lead pipeline (New→Contacted→Quote Sent→Booked→Lost) |
-| `quotes` | Quote generation with line items |
-| `user_profiles` | Links auth users to tenants |
+| `reviews` | Review tracking |
+| `payments` | Stripe-ready |
+| `leads` | Lead pipeline |
+| `quotes` | Quote generation |
+| `user_profiles` | Auth users → tenant mapping |
+| `ai_media` | AI-generated images/videos library |
 
-**Security:**
-- Row Level Security (RLS) enabled on ALL tables
-- Tenant isolation policies created
-- Users can only see their own tenant's data
-
-**Views:**
-- `v_todays_schedule` - Technician daily schedule with customer details
-- `v_customer_overview` - Customer with appointment count, total paid, next appointment
-
-**Sample Data:** Bravo Maids tenant seeded with services, 1 technician, 1 customer
+**Storage:**
+- `media` bucket - 50MB file limit, images + videos
 
 ---
 
-### 2. Edge Functions (API Layer)
+## API Layer (Edge Functions)
+
 Base URL: `https://yglaxwekbyfjmbhcwqhi.supabase.co/functions/v1`
 
-| Function | Purpose | Status |
-|----------|---------|--------|
-| `technician-schedule` | GET daily schedule for technician | ✅ Deployed |
-| `update-job-status` | Update appointment (start/complete/delay/cancel) | ✅ Deployed |
-| `notify-delay` | Send "running late" SMS | ✅ Deployed (needs Twilio) |
-| `public-booking` | Customer self-service booking API | ✅ Deployed |
+| Function | Purpose |
+|----------|---------|
+| `technician-schedule` | Get technician's daily jobs |
+| `update-job-status` | Start/complete/delay appointments |
+| `notify-delay` | Send "running late" SMS |
+| `public-booking` | Customer self-service booking |
 
 ---
 
-### 3. Deployed Apps
+## Deployed Apps
 
-**Admin Dashboard (ConvertLabs replacement):**
-- URL: https://vck4b0t25wgd.space.minimax.io
-- Features: Lead kanban, customers, calendar, quotes, reviews, settings
+### Admin Dashboard (ConvertLabs replacement)
+- **URL:** https://vck4b0t25wgd.space.minimax.io
+- **Features:** Lead kanban, customers, calendar, quotes, reviews, settings
+- **Auth:** Not yet implemented (demo mode)
 
-**Technician Mobile App:**
-- URL: https://qpzi6faccegl.space.minimax.io
-- Test ID: `a1b2c3d4-e5f6-7890-abcd-ef1234567890`
-- Features: Daily schedule, job details, start/complete/delay actions
+### Technician Mobile App
+- **URL:** https://qpzi6faccegl.space.minimax.io
+- **Test ID:** `a1b2c3d4-e5f6-7890-abcd-ef1234567890`
+- **Features:** Daily schedule, job details, start/complete/delay
 
-**Customer Booking Portal:**
-- Status: API ready, frontend not built yet
-- API: `public-booking?tenant=bravo-maids&action=get_services`
+### Customer Booking Portal
+- **URL:** https://4w71xzq5ogw8.space.minimax.io/?tenant=bravo-maids
+- **Features:** 3-step booking (select service → pick time → enter details)
+- **Multi-tenant:** Change `?tenant=` parameter for different businesses
 
 ---
 
-## What's NOT Done Yet
+## What's Left (Next Session)
 
-### Security (Required for Production)
-- [ ] Supabase Auth UI (login/signup screens)
-- [x] Row Level Security (RLS) policies - DONE
-- [ ] Move API keys from frontend to edge functions
-- [ ] Rate limiting
+### Priority 1: Production Security
+- [ ] Add Supabase Auth UI to admin dashboard
+- [ ] Add login to technician app
+- [ ] Rate limiting on public endpoints
 
-### Integrations Needed
-- [ ] Twilio SMS connection (code ready, needs SID + Token)
-- [ ] Stripe payments
-- [ ] n8n webhook endpoints
-- [ ] Data migration from ConvertLabs
+### Priority 2: Integrations
+- [ ] Connect Twilio (need SID + Token)
+- [ ] Connect Resend (need API key)
+- [ ] Connect your Veo3/Sora workflow to `ai_media` table
 
-### Features for Later
-- Customer booking portal frontend
-- AI quote generator
-- Route optimization
-- Advanced reporting
+### Priority 3: Data
+- [ ] Export customers from ConvertLabs
+- [ ] Import into Supabase
+- [ ] Add Clean Town & Country as second tenant
+
+---
+
+## AI Media Workflow (New)
+
+Your existing Veo3/Sora workflow should store output here:
+
+```
+INSERT INTO ai_media (tenant_id, media_type, url, prompt, model, brand)
+VALUES ('tenant-uuid', 'video', 'https://...', 'prompt used', 'veo3', 'bravo-maids');
+```
+
+Then review in admin dashboard → pick best → upload to Buffer.
 
 ---
 
@@ -120,37 +135,37 @@ Base URL: `https://yglaxwekbyfjmbhcwqhi.supabase.co/functions/v1`
 
 ```
 /workspace/code/supabase/
-├── technician-schedule.ts   # GET schedule API
-├── update-job-status.ts     # Update appointment API
-├── notify-delay.ts          # SMS notification API
-└── public-booking.ts        # Customer booking API
+├── technician-schedule.ts
+├── update-job-status.ts
+├── notify-delay.ts
+└── public-booking.ts
 ```
 
 ---
 
-## Next Session Instructions
+## Next Session Quick Start
 
-**Start your next session with:**
 ```
-Read /workspace/docs/SERVICE-CRM-PROJECT.md for context on my Local Service CRM project.
+Read /workspace/docs/SERVICE-CRM-PROJECT.md for context on my Local Service CRM.
 ```
 
-**Then pick a task:**
-1. Add Supabase Auth (login screens)
-2. Connect Twilio for real SMS
-3. Build customer booking portal frontend
-4. Migrate data from ConvertLabs
-5. Set up n8n automation workflows
+Then pick a task:
+1. Add Supabase Auth
+2. Connect Twilio SMS
+3. Connect Resend email
+4. Import ConvertLabs data
+5. Add second tenant (Clean Town & Country)
 
 ---
 
-## Credentials & URLs
+## URLs Quick Reference
 
-| Service | URL/Info |
-|---------|----------|
-| Supabase Project | https://yglaxwekbyfjmbhcwqhi.supabase.co |
+| What | URL |
+|------|-----|
 | Admin Dashboard | https://vck4b0t25wgd.space.minimax.io |
 | Technician App | https://qpzi6faccegl.space.minimax.io |
+| Booking Portal | https://4w71xzq5ogw8.space.minimax.io/?tenant=bravo-maids |
+| Supabase Dashboard | https://supabase.com/dashboard/project/yglaxwekbyfjmbhcwqhi |
 | API Base | https://yglaxwekbyfjmbhcwqhi.supabase.co/functions/v1 |
 
 ---
@@ -159,9 +174,9 @@ Read /workspace/docs/SERVICE-CRM-PROJECT.md for context on my Local Service CRM 
 
 | Before | After |
 |--------|-------|
-| ConvertLabs $297-497/mo | $0 (this CRM) |
-| Blotato $29/mo | Buffer $15/mo |
-| Multiple databases | Supabase Pro $25/mo |
+| ConvertLabs $297-497 | $0 |
+| Blotato $29 | Buffer $15 |
+| Multiple DBs | Supabase Pro $25 |
 | **~$350-550/mo** | **~$40/mo** |
 
 **Annual savings: $3,700 - $6,100**
