@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase, Service, Tenant } from '../lib/supabase';
 import { format, addDays, startOfDay, setHours, setMinutes } from 'date-fns';
-import { Calendar, Clock, CheckCircle, ArrowLeft, ArrowRight, MapPin, User, Mail, Phone, Loader2 } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, ArrowLeft, ArrowRight, MapPin, User, Mail, Phone, Loader2, CreditCard } from 'lucide-react';
 
-type Step = 'services' | 'datetime' | 'details' | 'confirm' | 'success';
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51QVcUP2KmRF04ypGSVYOwJISciS0fkt9sujXI6NxsQy9AmF7V3jkqMmZumBBZ2RaAz2C1pMifiGyNTTDplryMIkH00HhqlrPxL';
+const SUPABASE_URL = 'https://yglaxwekbyfjmbhcwqhi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnbGF4d2VrYnlmam1iaGN3cWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NjM5OTYsImV4cCI6MjA4MzAzOTk5Nn0.2FqbdDfX_agNp5G13nF9jx10nH3JB0REoFWQYk9nwxc';
+
+type Step = 'services' | 'datetime' | 'details' | 'confirm' | 'payment' | 'success';
 
 interface BookingData {
   service: Service | null;
@@ -71,9 +75,101 @@ export default function BookingPortal() {
 
   const nextDays = Array.from({ length: 14 }, (_, i) => addDays(new Date(), i + 1));
 
-  const handleSubmit = async () => {
-    if (!tenant || !booking.service || !booking.date) return;
+  const [stripeLoaded, setStripeLoaded] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const cardElementRef = useRef<any>(null);
+  const stripeRef = useRef<any>(null);
+
+  // Load Stripe
+  useEffect(() => {
+    if (!(window as any).Stripe) {
+      const script = document.createElement('script');
+      script.src = 'https://js.stripe.com/v3/';
+      script.onload = () => setStripeLoaded(true);
+      document.head.appendChild(script);
+    } else {
+      setStripeLoaded(true);
+    }
+  }, []);
+
+  const initializePayment = async () => {
+    if (!booking.service) return;
     setSubmitting(true);
+    setPaymentError('');
+    
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/create-payment-intent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          amount: booking.service.base_price,
+          currency: 'usd',
+          customerEmail: booking.email,
+          description: `${booking.service.name} - ${tenant?.name}`
+        })
+      });
+      
+      const result = await response.json();
+      if (result.error) throw new Error(result.error.message);
+      
+      setClientSecret(result.data.clientSecret);
+      setStep('payment');
+      
+      // Initialize Stripe Elements after transition
+      setTimeout(() => {
+        if ((window as any).Stripe && !stripeRef.current) {
+          stripeRef.current = (window as any).Stripe(STRIPE_PUBLISHABLE_KEY);
+          const elements = stripeRef.current.elements({ clientSecret: result.data.clientSecret });
+          cardElementRef.current = elements.create('payment');
+          cardElementRef.current.mount('#payment-element');
+        }
+      }, 100);
+    } catch (err: any) {
+      setPaymentError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!stripeRef.current || !clientSecret) return;
+    setSubmitting(true);
+    setPaymentError('');
+
+    try {
+      const { error, paymentIntent } = await stripeRef.current.confirmPayment({
+        elements: stripeRef.current.elements({ clientSecret }),
+        confirmParams: {
+          return_url: window.location.href,
+          payment_method_data: {
+            billing_details: {
+              name: `${booking.firstName} ${booking.lastName}`,
+              email: booking.email,
+              phone: booking.phone
+            }
+          }
+        },
+        redirect: 'if_required'
+      });
+
+      if (error) throw new Error(error.message);
+      
+      if (paymentIntent?.status === 'succeeded') {
+        await createBooking(paymentIntent.id);
+      }
+    } catch (err: any) {
+      setPaymentError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const createBooking = async (paymentIntentId?: string) => {
+    if (!tenant || !booking.service || !booking.date) return;
 
     // Create or find customer
     let customerId: string;
@@ -116,9 +212,10 @@ export default function BookingPortal() {
       status: 'scheduled',
       notes: booking.notes,
       price: booking.service.base_price,
+      payment_status: paymentIntentId ? 'paid' : 'pending',
+      stripe_payment_intent_id: paymentIntentId || null,
     });
 
-    setSubmitting(false);
     setStep('success');
   };
 
@@ -151,17 +248,17 @@ export default function BookingPortal() {
       {/* Progress Steps */}
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-8">
-          {['services', 'datetime', 'details', 'confirm'].map((s, i) => (
+          {['services', 'datetime', 'details', 'confirm', 'payment'].map((s, i) => (
             <div key={s} className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                 step === s ? 'bg-blue-600 text-white' :
-                ['services', 'datetime', 'details', 'confirm'].indexOf(step) > i ? 'bg-green-500 text-white' :
+                ['services', 'datetime', 'details', 'confirm', 'payment'].indexOf(step) > i ? 'bg-green-500 text-white' :
                 'bg-gray-200 text-gray-600'
               }`}>
-                {['services', 'datetime', 'details', 'confirm'].indexOf(step) > i ? <CheckCircle size={16} /> : i + 1}
+                {['services', 'datetime', 'details', 'confirm', 'payment'].indexOf(step) > i ? <CheckCircle size={16} /> : i + 1}
               </div>
-              {i < 3 && <div className={`w-16 sm:w-24 h-1 mx-2 ${
-                ['services', 'datetime', 'details', 'confirm'].indexOf(step) > i ? 'bg-green-500' : 'bg-gray-200'
+              {i < 4 && <div className={`w-12 sm:w-16 h-1 mx-1 ${
+                ['services', 'datetime', 'details', 'confirm', 'payment'].indexOf(step) > i ? 'bg-green-500' : 'bg-gray-200'
               }`} />}
             </div>
           ))}
@@ -413,12 +510,50 @@ export default function BookingPortal() {
                   <ArrowLeft size={18} /> Back
                 </button>
                 <button
-                  onClick={handleSubmit}
+                  onClick={initializePayment}
+                  disabled={submitting || !stripeLoaded}
+                  className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                >
+                  {submitting ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={18} />}
+                  {submitting ? 'Processing...' : 'Proceed to Payment'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 'payment' && (
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Payment</h2>
+              
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <div className="flex justify-between text-lg font-bold">
+                  <span>Total Due</span>
+                  <span className="text-green-600">${booking.service?.base_price}</span>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Card Details</label>
+                <div id="payment-element" className="p-4 border rounded-lg bg-white min-h-[100px]"></div>
+              </div>
+
+              {paymentError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {paymentError}
+                </div>
+              )}
+
+              <div className="flex justify-between">
+                <button onClick={() => setStep('confirm')} className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+                  <ArrowLeft size={18} /> Back
+                </button>
+                <button
+                  onClick={handlePayment}
                   disabled={submitting}
                   className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                 >
                   {submitting ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
-                  {submitting ? 'Booking...' : 'Confirm Booking'}
+                  {submitting ? 'Processing...' : 'Pay & Book'}
                 </button>
               </div>
             </div>
