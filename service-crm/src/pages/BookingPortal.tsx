@@ -3,7 +3,6 @@ import { supabase, Service, Tenant } from '../lib/supabase';
 import { format, addDays, startOfDay, setHours, setMinutes } from 'date-fns';
 import { Calendar, Clock, CheckCircle, ArrowLeft, ArrowRight, MapPin, User, Mail, Phone, Loader2, CreditCard } from 'lucide-react';
 
-const STRIPE_PUBLISHABLE_KEY = 'pk_live_51QVcUP2KmRF04ypGSVYOwJISciS0fkt9sujXI6NxsQy9AmF7V3jkqMmZumBBZ2RaAz2C1pMifiGyNTTDplryMIkH00HhqlrPxL';
 const SUPABASE_URL = 'https://yglaxwekbyfjmbhcwqhi.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnbGF4d2VrYnlmam1iaGN3cWhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NjM5OTYsImV4cCI6MjA4MzAzOTk5Nn0.2FqbdDfX_agNp5G13nF9jx10nH3JB0REoFWQYk9nwxc';
 
@@ -43,7 +42,7 @@ export default function BookingPortal() {
   useEffect(() => {
     const fetchTenant = async () => {
       // In production, you'd get tenant from subdomain or URL param
-      const { data: tenants } = await supabase.from('tenants').select('*').limit(1);
+      const { data: tenants } = await supabase.from('tenants').select('*, stripe_publishable_key').limit(1);
       if (tenants && tenants.length > 0) {
         setTenant(tenants[0]);
       }
@@ -108,6 +107,7 @@ export default function BookingPortal() {
         body: JSON.stringify({
           amount: booking.service.base_price,
           currency: 'usd',
+          tenantId: tenant?.id,
           customerEmail: booking.email,
           description: `${booking.service.name} - ${tenant?.name}`
         })
@@ -122,7 +122,7 @@ export default function BookingPortal() {
       // Initialize Stripe Elements after transition
       setTimeout(() => {
         if ((window as any).Stripe && !stripeRef.current) {
-          stripeRef.current = (window as any).Stripe(STRIPE_PUBLISHABLE_KEY);
+          stripeRef.current = (window as any).Stripe((tenant as any)?.stripe_publishable_key);
           const elements = stripeRef.current.elements({ clientSecret: result.data.clientSecret });
           cardElementRef.current = elements.create('payment');
           cardElementRef.current.mount('#payment-element');
