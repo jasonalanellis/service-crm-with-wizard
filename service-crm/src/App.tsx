@@ -25,6 +25,7 @@ import PaymentSettings from './pages/PaymentSettings';
 import PortalSettings from './pages/PortalSettings';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import BookingPortal from './pages/BookingPortal';
 
 type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings';
 
@@ -76,6 +77,15 @@ function AuthenticatedApp() {
 function AppContent() {
   const { user, loading } = useAuth();
   const [authView, setAuthView] = useState<'login' | 'signup'>('login');
+
+  // Handle public booking portal route
+  if (window.location.pathname.startsWith('/book')) {
+    const tenantId = new URLSearchParams(window.location.search).get('tenant');
+    if (tenantId) {
+      return <TenantProvider explicitTenantId={tenantId}><ToastProvider><BookingPortal /></ToastProvider></TenantProvider>;
+    }
+    return <div className="p-8 text-center text-gray-600">Tenant ID not specified. Please use a valid booking link.</div>;
+  }
 
   if (loading) {
     return (

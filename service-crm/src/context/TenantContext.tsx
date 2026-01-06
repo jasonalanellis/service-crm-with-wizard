@@ -10,24 +10,34 @@ type TenantContextType = {
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
-export function TenantProvider({ children }: { children: ReactNode }) {
+export function TenantProvider({ children, explicitTenantId }: { children: ReactNode; explicitTenantId?: string | null }) {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTenants = async () => {
-      const { data } = await supabase.from('tenants').select('*').order('name');
-      if (data) {
-        setTenants(data);
-        const saved = localStorage.getItem('selectedTenantId');
-        const found = data.find(t => t.id === saved);
-        if (found) setTenant(found);
+      if (explicitTenantId) {
+        // Public portal mode: fetch only the specified tenant
+        const { data } = await supabase.from('tenants').select('*').eq('id', explicitTenantId).single();
+        if (data) {
+          setTenants([data]);
+          setTenant(data);
+        }
+      } else {
+        // Admin mode: fetch all tenants user has access to
+        const { data } = await supabase.from('tenants').select('*').order('name');
+        if (data) {
+          setTenants(data);
+          const saved = localStorage.getItem('selectedTenantId');
+          const found = data.find(t => t.id === saved);
+          if (found) setTenant(found);
+        }
       }
       setLoading(false);
     };
     fetchTenants();
-  }, []);
+  }, [explicitTenantId]);
 
   const handleSetTenant = (t: Tenant) => {
     setTenant(t);
