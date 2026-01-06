@@ -203,7 +203,7 @@ export default function BookingPortal() {
     const scheduledStart = setMinutes(setHours(startOfDay(booking.date), hours), minutes);
     const scheduledEnd = new Date(scheduledStart.getTime() + (booking.service.duration || 60) * 60000);
 
-    await supabase.from('appointments').insert({
+    const { data: newAppt } = await supabase.from('appointments').insert({
       tenant_id: tenant.id,
       customer_id: customerId,
       service_id: booking.service.id,
@@ -214,7 +214,16 @@ export default function BookingPortal() {
       price: booking.service.base_price,
       payment_status: paymentIntentId ? 'paid' : 'pending',
       stripe_payment_intent_id: paymentIntentId || null,
-    });
+    }).select().single();
+
+    // Send confirmation SMS (non-blocking)
+    if (newAppt?.id) {
+      fetch(`${SUPABASE_URL}/functions/v1/send-booking-notification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({ appointmentId: newAppt.id })
+      }).catch(() => {}); // Silent fail - SMS is optional
+    }
 
     setStep('success');
   };
