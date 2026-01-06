@@ -1,46 +1,59 @@
-# Service CRM Project Status
+# Service CRM Project Log
 
-## Session 1 Complete (Jan 6, 2026)
+**Quick Start:** Read this file for full context. Main doc: /workspace/docs/SERVICE-CRM-PROJECT.md
 
-### Built
-- Database: 11 tables in Supabase (yglaxwekbyfjmbhcwqhi)
-- Admin Dashboard: https://vck4b0t25wgd.space.minimax.io
+---
+## URLS
+- Admin: https://vck4b0t25wgd.space.minimax.io
 - Technician App: https://qpzi6faccegl.space.minimax.io
 - Booking Portal: https://4w71xzq5ogw8.space.minimax.io/?tenant=bravo-maids
-- 4 Edge Functions deployed
-- Media storage bucket
+- Supabase: yglaxwekbyfjmbhcwqhi
 
-### Next Session Tasks
-- [ ] Add Supabase Auth to admin dashboard
-- [ ] Add login to technician app
-- [ ] Connect Twilio SMS / Resend email
-- [ ] Import ConvertLabs data
-- [ ] Add second tenant (Clean Town & Country)
+---
+## SESSION LOG
 
-### ConvertLabs Features Analysis (29 screenshots)
+### Session 1 (Jan 6) - DONE
+Built MVP: 11 tables, 3 apps, 4 edge functions, media bucket
 
-**Core Pages Missing:**
-- [ ] Bookings list view (date, client, address, provider, payment, revenue)
-- [ ] Service Providers page (name, email, phone, wage, rating)
-- [ ] Providers Activity (today's jobs by provider, list/board view)
-- [ ] Payouts (earned, adjustment, due, status, paid - per provider)
-- [ ] Invoices (client, date, amount, status)
-- [ ] Discounts page
-- [ ] Marketing (leads, campaigns, widgets, views graph)
+### Session 2 (Jan 6, ~11pm) - IN PROGRESS
+- Reviewed 29 ConvertLabs UI screenshots (saved in /workspace/imgs/cl_*.png)
+- Analyzed missing features (see below)
 
-**Settings Enhancements:**
-- [ ] Services tab (service catalog with pricing, extras, durations)
-- [ ] Payment tab (auto charge, sales tax, same day fee, cancellation, referrals)
-- [ ] Time & Scheduling (business hours, blocked dates, arrival window)
-- [ ] Portals (customer portal subdomain, provider portal settings)
-- [ ] Notifications (email toggles per event type)
-- [ ] Integrations tab
+---
+## FEATURE BACKLOG (from ConvertLabs analysis)
 
-**Other:**
+### Priority 1 - Core Pages
+- [ ] Bookings list (date, client, address, provider, payment, revenue)
+- [ ] Service Providers page (wage, rating, contact)
+- [ ] Providers Activity (today's jobs per provider)
+- [ ] Payouts (track technician earnings)
+- [ ] Invoices
+
+### Priority 2 - Settings
+- [ ] Services catalog (pricing tiers, extras, durations)
+- [ ] Payment settings (auto-charge, fees, referrals)
+- [ ] Time & Scheduling (business hours, blocked dates)
+- [ ] Notifications config
+- [ ] Portal settings
+
+### Priority 3 - Other
+- [ ] Marketing (leads, campaigns, analytics)
+- [ ] Discounts
 - [ ] Getting Started checklist
-- [ ] Websites/Domains management (lower priority - we use separate hosting)
 
-### Key Files
+### Auth (needed before production)
+- [ ] Supabase Auth on admin dashboard
+- [ ] Login on technician app
+
+---
+## DECISIONS / NOTES
+- Replacing ConvertLabs ($297-497/mo) with this CRM
+- Two tenants: Bravo Maids, Clean Town & Country
+- Using: Supabase, Buffer, Twilio, Resend
+
+---
+## KEY FILES
 - Full doc: /workspace/docs/SERVICE-CRM-PROJECT.md
+- ConvertLabs screenshots: /workspace/imgs/cl_1.png through cl_29.png
 - Code: /workspace/code/supabase/
 - Apps: /workspace/service-crm/, /workspace/field-service-pwa/, /workspace/booking-portal/
