@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { supabase, Appointment, Technician, Customer, Service } from '../lib/supabase';
 import { useTenant } from '../context/TenantContext';
 import { format, parseISO, startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns';
-import { Plus, ChevronLeft, ChevronRight, Search, Edit, Trash2 } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Search, Edit, Trash2, CheckSquare } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ExportButton from '../components/ExportButton';
-import Avatar from '../components/Avatar';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { usePinnedItems, PinButton } from '../hooks/usePinnedItems';
+import { useToast } from '../context/ToastContext';
 
 type BookingWithRelations = Appointment & {
   customer?: Customer;
@@ -24,6 +26,12 @@ export default function Bookings() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBatchUpdate, setShowBatchUpdate] = useState(false);
+  const [batchStatus, setBatchStatus] = useState('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const { isPinned, togglePin, sortWithPinned } = usePinnedItems('bookings');
+  const { showToast, showUndoToast } = useToast();
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -68,14 +76,62 @@ export default function Bookings() {
     setLoading(false);
   };
 
-  const filteredBookings = bookings.filter(b => {
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === filteredBookings.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredBookings.map(b => b.id)));
+    }
+  };
+
+  const handleBatchStatusUpdate = async () => {
+    if (!batchStatus || selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase.from('appointments').update({ status: batchStatus }).in('id', ids);
+    if (error) {
+      showToast('Failed to update', 'error');
+    } else {
+      showToast(`Updated ${ids.length} booking(s)`, 'success');
+      setSelectedIds(new Set());
+      setShowBatchUpdate(false);
+      fetchData();
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const booking = bookings.find(b => b.id === id);
+    if (!booking) return;
+    
+    const { error } = await supabase.from('appointments').delete().eq('id', id);
+    if (error) {
+      showToast('Failed to delete', 'error');
+    } else {
+      showUndoToast('Booking deleted', async () => {
+        await supabase.from('appointments').insert(booking);
+        fetchData();
+      });
+      fetchData();
+    }
+    setDeleteConfirmId(null);
+  };
+
+  const filteredBookings = sortWithPinned(bookings.filter(b => {
     const matchSearch = search === '' || 
       b.customer?.first_name?.toLowerCase().includes(search.toLowerCase()) ||
       b.customer?.last_name?.toLowerCase().includes(search.toLowerCase()) ||
       b.customer?.email?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === '' || b.status === filterStatus;
     return matchSearch && matchStatus;
-  });
+  }));
 
   const totalRevenue = filteredBookings.reduce((sum, b) => sum + (b.service?.base_price || 0), 0);
 
@@ -182,7 +238,16 @@ export default function Bookings() {
             <table className="w-full">
               <thead className="bg-gray-50 text-left text-sm text-gray-500">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Date</th>
+                  <th className="px-4 py-3 w-8">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.size === filteredBookings.length && filteredBookings.length > 0}
+                            onChange={selectAll}
+                            className="rounded"
+                          />
+                        </th>
+                        <th className="w-10"></th>
+                        <th className="px-4 py-3 font-medium">Date</th>
                   <th className="px-4 py-3 font-medium">Client</th>
                   <th className="px-4 py-3 font-medium hidden md:table-cell">Address</th>
                   <th className="px-4 py-3 font-medium">Service Provider</th>
@@ -195,10 +260,21 @@ export default function Bookings() {
                 {filteredBookings.map(booking => {
                   const payment = getPaymentStatus(booking);
                   return (
-                    <tr key={booking.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
+                    <tr key={booking.id} className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 ${selectedIds.has(booking.id) ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
+                      <td className="px-4 py-3 w-8">
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.has(booking.id)}
+                              onChange={() => toggleSelect(booking.id)}
+                              className="rounded"
+                            />
+                          </td>
+                          <td className="px-2">
+                            <PinButton isPinned={isPinned(booking.id)} onToggle={() => togglePin(booking.id)} />
+                          </td>
+                          <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex flex-col items-center justify-center text-blue-600">
+                          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex flex-col items-center justify-center text-blue-600 dark:text-blue-400">
                             <span className="text-xs font-medium">{format(parseISO(booking.scheduled_start), 'dd')}</span>
                             <span className="text-[10px]">{format(parseISO(booking.scheduled_start), 'MMM')}</span>
                           </div>
@@ -233,7 +309,7 @@ export default function Bookings() {
                           <button className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600">
                             <Edit size={16} />
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-red-600">
+                          <button onClick={() => setDeleteConfirmId(booking.id)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400 hover:text-red-600">
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -247,10 +323,43 @@ export default function Bookings() {
         )}
 
         {/* Pagination placeholder */}
-        <div className="p-4 border-t text-sm text-gray-500">
-          Showing {filteredBookings.length} of {bookings.length} bookings
+        <div className="p-4 border-t text-sm text-gray-500 dark:text-gray-400 flex items-center justify-between">
+          <span>Showing {filteredBookings.length} of {bookings.length} bookings</span>
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-3">
+              <span className="text-blue-600 dark:text-blue-400 font-medium">{selectedIds.size} selected</span>
+              <select
+                value={batchStatus}
+                onChange={e => setBatchStatus(e.target.value)}
+                className="border dark:border-gray-600 rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
+              >
+                <option value="">Change status to...</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <button
+                onClick={handleBatchStatusUpdate}
+                disabled={!batchStatus}
+                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50"
+              >
+                Update
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteConfirmId}
+        title="Delete Booking"
+        message="Are you sure you want to delete this booking? This action can be undone within 5 seconds."
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={() => deleteConfirmId && handleDelete(deleteConfirmId)}
+        onCancel={() => setDeleteConfirmId(null)}
+      />
     </div>
   );
 }

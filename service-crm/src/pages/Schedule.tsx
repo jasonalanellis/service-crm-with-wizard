@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
 import { supabase, Appointment, Technician, Customer, Service } from '../lib/supabase';
 import { useTenant } from '../context/TenantContext';
 import { useToast } from '../context/ToastContext';
 import { format, startOfWeek, endOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, X, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X, Clock, Trash2 } from 'lucide-react';
+import ConfirmDialog from '../components/ConfirmDialog';
+import BookingConflictWarning, { useServiceDuration } from '../components/BookingConflictWarning';
+import { addRecentActivity } from '../components/RecentActivitySidebar';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 7); // 7 AM to 6 PM
 const DEFAULT_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
@@ -271,35 +275,49 @@ function AppointmentDetail({ appointment, onClose, onEdit, onDelete }: {
   const cust = appointment.customer as Customer;
   const tech = appointment.technician as Technician;
   const svc = appointment.service as Service;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full" onClick={e => e.stopPropagation()}>
-        <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Appointment Details</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300"><X size={24} /></button>
-        </div>
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><span className="text-gray-500 dark:text-gray-400">Customer:</span> <p className="font-medium">{cust?.first_name} {cust?.last_name}</p></div>
-            <div><span className="text-gray-500 dark:text-gray-400">Technician:</span> <p className="font-medium">{tech?.first_name || 'Unassigned'}</p></div>
-            <div><span className="text-gray-500 dark:text-gray-400">Service:</span> <p className="font-medium">{svc?.name || '-'}</p></div>
-            <div><span className="text-gray-500 dark:text-gray-400">Status:</span> <p className="font-medium capitalize">{appointment.status}</p></div>
+    <>
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full" onClick={e => e.stopPropagation()}>
+          <div className="p-4 border-b dark:border-gray-700 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Appointment Details</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300"><X size={24} /></button>
           </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Clock size={16} className="text-gray-400" />
-            <span>{format(parseISO(appointment.scheduled_start), 'EEEE, MMMM d, yyyy h:mm a')}</span>
-          </div>
-          {appointment.notes && (
-            <div className="text-sm"><span className="text-gray-500 dark:text-gray-400">Notes:</span> <p>{appointment.notes}</p></div>
-          )}
-          <div className="flex gap-2 pt-4 border-t">
-            <button onClick={onEdit} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Edit</button>
-            <button onClick={onDelete} className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">Delete</button>
+          <div className="p-4 space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div><span className="text-gray-500 dark:text-gray-400">Customer:</span> <p className="font-medium text-gray-900 dark:text-white">{cust?.first_name} {cust?.last_name}</p></div>
+              <div><span className="text-gray-500 dark:text-gray-400">Technician:</span> <p className="font-medium text-gray-900 dark:text-white">{tech?.first_name || 'Unassigned'}</p></div>
+              <div><span className="text-gray-500 dark:text-gray-400">Service:</span> <p className="font-medium text-gray-900 dark:text-white">{svc?.name || '-'}</p></div>
+              <div><span className="text-gray-500 dark:text-gray-400">Status:</span> <p className="font-medium capitalize text-gray-900 dark:text-white">{appointment.status}</p></div>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <Clock size={16} className="text-gray-400" />
+              <span>{format(parseISO(appointment.scheduled_start), 'EEEE, MMMM d, yyyy h:mm a')}</span>
+            </div>
+            {appointment.notes && (
+              <div className="text-sm"><span className="text-gray-500 dark:text-gray-400">Notes:</span> <p className="text-gray-700 dark:text-gray-300">{appointment.notes}</p></div>
+            )}
+            <div className="flex gap-2 pt-4 border-t dark:border-gray-700">
+              <button onClick={onEdit} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">Edit</button>
+              <button onClick={() => setShowDeleteConfirm(true)} className="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 flex items-center gap-2">
+                <Trash2 size={16} /> Delete
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete Appointment"
+        message="Are you sure you want to delete this appointment? This action cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={() => { setShowDeleteConfirm(false); onDelete(); }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
+    </>
   );
 }
 
@@ -323,6 +341,14 @@ function AppointmentForm({ appointment, tenantId, customers, technicians, servic
     notes: appointment?.notes || '',
   });
   const [saving, setSaving] = useState(false);
+  const serviceDuration = useServiceDuration(form.service_id);
+
+  // Auto-update duration when service changes
+  useEffect(() => {
+    if (form.service_id && serviceDuration !== 60) {
+      setForm(f => ({ ...f, duration_minutes: serviceDuration }));
+    }
+  }, [serviceDuration, form.service_id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -348,7 +374,11 @@ function AppointmentForm({ appointment, tenantId, customers, technicians, servic
     } else {
       const { error } = await supabase.from('appointments').insert(data);
       if (error) showToast('Failed to create', 'error');
-      else { showToast('Appointment created', 'success'); onSave(); }
+      else {
+        showToast('Appointment created', 'success');
+        addRecentActivity({ type: 'booking', title: 'New Appointment', description: 'Appointment scheduled' });
+        onSave();
+      }
     }
     setSaving(false);
   };
@@ -383,7 +413,16 @@ function AppointmentForm({ appointment, tenantId, customers, technicians, servic
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
-          <textarea placeholder="Notes" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="w-full border rounded-lg px-3 py-2 h-20" />
+          <textarea placeholder="Notes" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="w-full border dark:border-gray-600 rounded-lg px-3 py-2 h-20 dark:bg-gray-700 dark:text-white" />
+          
+          {/* Conflict Warning */}
+          <BookingConflictWarning
+            tenantId={tenantId}
+            technicianId={form.technician_id}
+            startTime={form.scheduled_start ? new Date(form.scheduled_start).toISOString() : ''}
+            duration={form.duration_minutes}
+            excludeAppointmentId={appointment?.id}
+          />
           <div className="flex justify-end gap-2 pt-4">
             <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50 dark:bg-gray-900">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">

@@ -6,6 +6,9 @@ import Sidebar from './components/Sidebar';
 import GlobalSearch from './components/GlobalSearch';
 import ThemeToggle from './components/ThemeToggle';
 import KeyboardShortcuts from './components/KeyboardShortcuts';
+import OnboardingTour from './components/OnboardingTour';
+import RecentActivitySidebar from './components/RecentActivitySidebar';
+import SessionTimeoutWarning from './components/SessionTimeoutWarning';
 import Dashboard from './pages/Dashboard';
 import Bookings from './pages/Bookings';
 import Leads from './pages/Leads';
@@ -114,6 +117,9 @@ function AuthenticatedApp() {
       <ToastProvider>
         <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
           <KeyboardShortcuts onNavigate={(p) => setCurrentPage(p as Page)} />
+          <OnboardingTour />
+          <RecentActivitySidebar />
+          <SessionTimeoutWarning timeoutMinutes={30} warningMinutes={1} onTimeout={signOut} />
           <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} onLogout={signOut} />
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Header */}

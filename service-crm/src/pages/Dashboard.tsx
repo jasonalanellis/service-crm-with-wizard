@@ -7,6 +7,9 @@ import StatsCard from '../components/StatsCard';
 import QuickActions from '../components/QuickActions';
 import ActivityFeed from '../components/ActivityFeed';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import CollapsibleWidget from '../components/CollapsibleWidget';
+import DataRefreshIndicator from '../components/DataRefreshIndicator';
+import { Calendar as CalendarIcon, Activity as ActivityIcon } from 'lucide-react';
 
 type Stats = {
   todayAppointments: number;
@@ -34,10 +37,17 @@ export default function Dashboard({ onNavigate }: { onNavigate?: (page: string) 
   const [loading, setLoading] = useState(true);
   const [upcomingJobs, setUpcomingJobs] = useState<any[]>([]);
 
-  useEffect(() => {
+  const formatTime = (date: string) => {
+    const d = new Date(date);
+    const now = new Date();
+    const diff = (now.getTime() - d.getTime()) / 1000 / 60;
+    if (diff < 60) return `${Math.floor(diff)}m ago`;
+    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
+    return format(d, 'MMM d');
+  };
+
+  const fetchData = async () => {
     if (!tenant) return;
-    
-    const fetchData = async () => {
       setLoading(true);
       const today = new Date();
       const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -81,20 +91,12 @@ export default function Dashboard({ onNavigate }: { onNavigate?: (page: string) 
 
       acts.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
       setActivities(acts.slice(0, 8));
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [tenant]);
-
-  const formatTime = (date: string) => {
-    const d = new Date(date);
-    const now = new Date();
-    const diff = (now.getTime() - d.getTime()) / 1000 / 60;
-    if (diff < 60) return `${Math.floor(diff)}m ago`;
-    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-    return format(d, 'MMM d');
+    setLoading(false);
   };
+
+  useEffect(() => {
+    if (tenant) fetchData();
+  }, [tenant]);
 
   if (!tenant) {
     return (
@@ -131,7 +133,10 @@ export default function Dashboard({ onNavigate }: { onNavigate?: (page: string) 
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">Welcome back! Here's what's happening today.</p>
         </div>
-        {onNavigate && <QuickActions onNavigate={onNavigate} />}
+        <div className="flex items-center gap-4">
+          <DataRefreshIndicator onRefresh={async () => { setLoading(true); await fetchData(); }} />
+          {onNavigate && <QuickActions onNavigate={onNavigate} />}
+        </div>
       </div>
 
       {/* Stats Grid */}
