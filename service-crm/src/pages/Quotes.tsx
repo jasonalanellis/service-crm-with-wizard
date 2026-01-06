@@ -292,7 +292,7 @@ function QuoteForm({ quote, tenantId, leads, customers, services, onClose, onSav
   const addServiceItem = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
     if (service) {
-      setItems([...items, { name: service.name, quantity: 1, price: Number(service.price) }]);
+      setItems([...items, { name: service.name, quantity: 1, price: Number(service.base_price) }]);
     }
   };
 
@@ -384,7 +384,7 @@ function QuoteForm({ quote, tenantId, leads, customers, services, onClose, onSav
               <div className="flex gap-2">
                 <select onChange={e => { if (e.target.value) { addServiceItem(e.target.value); e.target.value = ''; } }} className="border rounded-lg px-3 py-1 text-sm">
                   <option value="">Add Service...</option>
-                  {services.map(s => <option key={s.id} value={s.id}>{s.name} - ${s.price}</option>)}
+                  {services.map(s => <option key={s.id} value={s.id}>{s.name} - ${s.base_price}</option>)}
                 </select>
                 <button type="button" onClick={addCustomItem} className="px-3 py-1 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">+ Custom</button>
               </div>

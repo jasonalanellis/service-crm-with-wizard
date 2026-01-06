@@ -371,7 +371,7 @@ function AppointmentForm({ appointment, tenantId, customers, technicians, servic
           </select>
           <select value={form.service_id} onChange={e => setForm(f => ({ ...f, service_id: e.target.value }))} className="w-full border rounded-lg px-3 py-2">
             <option value="">Select Service</option>
-            {services.map(s => <option key={s.id} value={s.id}>{s.name} - ${s.price}</option>)}
+            {services.map(s => <option key={s.id} value={s.id}>{s.name} - ${s.base_price}</option>)}
           </select>
           <div className="grid grid-cols-2 gap-4">
             <input type="datetime-local" value={form.scheduled_start} onChange={e => setForm(f => ({ ...f, scheduled_start: e.target.value }))} className="border rounded-lg px-3 py-2" />

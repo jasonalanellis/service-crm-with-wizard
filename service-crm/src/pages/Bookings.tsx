@@ -73,7 +73,7 @@ export default function Bookings() {
     return matchSearch && matchStatus;
   });
 
-  const totalRevenue = filteredBookings.reduce((sum, b) => sum + (b.service?.price || 0), 0);
+  const totalRevenue = filteredBookings.reduce((sum, b) => sum + (b.service?.base_price || 0), 0);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -222,7 +222,7 @@ export default function Bookings() {
                         <span className={`text-sm font-medium ${payment.color}`}>{payment.label}</span>
                       </td>
                       <td className="px-4 py-3 text-right font-medium">
-                        ${booking.service?.price?.toFixed(2) || '0.00'}
+                        ${booking.service?.base_price?.toFixed(2) || '0.00'}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">

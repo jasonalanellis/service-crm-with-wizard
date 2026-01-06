@@ -168,7 +168,7 @@ function ServicesManager({ tenantId }: { tenantId: string }) {
                   {service.description && <p className="text-sm text-gray-500">{service.description}</p>}
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="font-semibold text-gray-700">${Number(service.price).toFixed(2)}</span>
+                  <span className="font-semibold text-gray-700">${Number(service.base_price).toFixed(2)}</span>
                   <div className="flex gap-1">
                     <button onClick={() => { setEditingService(service); setShowForm(true); }} className="p-1.5 hover:bg-gray-100 rounded">
                       <Edit2 size={16} className="text-gray-600" />
@@ -206,8 +206,8 @@ function ServiceForm({ service, tenantId, onClose, onSave }: {
   const [form, setForm] = useState({
     name: service?.name || '',
     description: service?.description || '',
-    price: service?.price || 0,
-    duration_minutes: service?.duration_minutes || 60,
+    base_price: service?.base_price || 0,
+    duration: service?.duration || 60,
   });
   const [saving, setSaving] = useState(false);
 
@@ -240,11 +240,11 @@ function ServiceForm({ service, tenantId, onClose, onSave }: {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-600 mb-1">Price ($)</label>
-              <input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))} className="w-full border rounded-lg px-3 py-2" step="0.01" />
+              <input type="number" value={form.base_price} onChange={e => setForm(f => ({ ...f, base_price: parseFloat(e.target.value) || 0 }))} className="w-full border rounded-lg px-3 py-2" step="0.01" />
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">Duration (min)</label>
-              <input type="number" value={form.duration_minutes} onChange={e => setForm(f => ({ ...f, duration_minutes: parseInt(e.target.value) || 60 }))} className="w-full border rounded-lg px-3 py-2" />
+              <input type="number" value={form.duration} onChange={e => setForm(f => ({ ...f, duration: parseInt(e.target.value) || 60 }))} className="w-full border rounded-lg px-3 py-2" />
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4">
