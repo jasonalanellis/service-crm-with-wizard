@@ -18,6 +18,8 @@ interface BookingData {
   phone: string;
   address: string;
   notes: string;
+  recurring: 'none' | 'weekly' | 'biweekly' | 'monthly';
+  recurringWeeks: number;
 }
 
 export default function BookingPortal() {
@@ -36,6 +38,8 @@ export default function BookingPortal() {
     phone: '',
     address: '',
     notes: '',
+    recurring: 'none',
+    recurringWeeks: 4,
   });
 
   // Get tenant from URL or default to first one
@@ -198,31 +202,56 @@ export default function BookingPortal() {
       customerId = newCustomer?.id;
     }
 
-    // Create appointment
+    // Calculate recurrence dates
     const [hours, minutes] = booking.time.split(':').map(Number);
-    const scheduledStart = setMinutes(setHours(startOfDay(booking.date), hours), minutes);
-    const scheduledEnd = new Date(scheduledStart.getTime() + (booking.service.duration || 60) * 60000);
+    const baseStart = setMinutes(setHours(startOfDay(booking.date), hours), minutes);
+    const duration = booking.service.duration || 60;
+    
+    const getDaysBetween = () => {
+      if (booking.recurring === 'weekly') return 7;
+      if (booking.recurring === 'biweekly') return 14;
+      if (booking.recurring === 'monthly') return 28;
+      return 0;
+    };
+    
+    const numAppointments = booking.recurring === 'none' ? 1 : Math.ceil(booking.recurringWeeks / (getDaysBetween() / 7));
+    const daysBetween = getDaysBetween();
+    
+    let parentId: string | null = null;
+    let firstApptId: string | null = null;
+    
+    for (let i = 0; i < numAppointments; i++) {
+      const scheduledStart = new Date(baseStart.getTime() + i * daysBetween * 24 * 60 * 60 * 1000);
+      const scheduledEnd = new Date(scheduledStart.getTime() + duration * 60000);
+      
+      const { data: newAppt } = await supabase.from('appointments').insert({
+        tenant_id: tenant.id,
+        customer_id: customerId,
+        service_id: booking.service.id,
+        scheduled_start: scheduledStart.toISOString(),
+        scheduled_end: scheduledEnd.toISOString(),
+        status: 'scheduled',
+        notes: booking.notes,
+        price: booking.service.base_price,
+        payment_status: i === 0 && paymentIntentId ? 'paid' : 'pending',
+        stripe_payment_intent_id: i === 0 ? paymentIntentId || null : null,
+        is_recurring: booking.recurring !== 'none',
+        recurring_pattern: booking.recurring !== 'none' ? booking.recurring : null,
+        recurring_parent_id: parentId,
+      }).select().single();
+      
+      if (i === 0 && newAppt?.id) {
+        parentId = newAppt.id;
+        firstApptId = newAppt.id;
+      }
+    }
 
-    const { data: newAppt } = await supabase.from('appointments').insert({
-      tenant_id: tenant.id,
-      customer_id: customerId,
-      service_id: booking.service.id,
-      scheduled_start: scheduledStart.toISOString(),
-      scheduled_end: scheduledEnd.toISOString(),
-      status: 'scheduled',
-      notes: booking.notes,
-      price: booking.service.base_price,
-      payment_status: paymentIntentId ? 'paid' : 'pending',
-      stripe_payment_intent_id: paymentIntentId || null,
-    }).select().single();
-
-    // Send confirmation SMS (non-blocking)
-    if (newAppt?.id) {
-      fetch(`${SUPABASE_URL}/functions/v1/send-booking-notification`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
-        body: JSON.stringify({ appointmentId: newAppt.id })
-      }).catch(() => {}); // Silent fail - SMS is optional
+    // Send confirmation SMS & Email (non-blocking)
+    if (firstApptId) {
+      const headers = { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY };
+      const body = JSON.stringify({ appointmentId: firstApptId });
+      fetch(`${SUPABASE_URL}/functions/v1/send-booking-notification`, { method: 'POST', headers, body }).catch(() => {});
+      fetch(`${SUPABASE_URL}/functions/v1/send-booking-email`, { method: 'POST', headers, body }).catch(() => {});
     }
 
     setStep('success');
@@ -356,6 +385,47 @@ export default function BookingPortal() {
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Recurring Options */}
+              {booking.date && booking.time && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Repeat Booking?</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { value: 'none', label: 'One-time' },
+                      { value: 'weekly', label: 'Weekly' },
+                      { value: 'biweekly', label: 'Every 2 weeks' },
+                      { value: 'monthly', label: 'Monthly' }
+                    ].map(opt => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setBooking({ ...booking, recurring: opt.value as any })}
+                        className={`p-2 rounded-lg text-sm transition-all ${
+                          booking.recurring === opt.value
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white border hover:bg-gray-100'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  {booking.recurring !== 'none' && (
+                    <div className="mt-3">
+                      <label className="block text-sm text-gray-600 mb-1">For how many weeks?</label>
+                      <select
+                        value={booking.recurringWeeks}
+                        onChange={e => setBooking({ ...booking, recurringWeeks: parseInt(e.target.value) })}
+                        className="px-3 py-2 border rounded-lg"
+                      >
+                        {[4, 8, 12, 16, 24, 52].map(n => (
+                          <option key={n} value={n}>{n} weeks</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -584,7 +654,7 @@ export default function BookingPortal() {
               </div>
               <button
                 onClick={() => {
-                  setBooking({ service: null, date: null, time: '', firstName: '', lastName: '', email: '', phone: '', address: '', notes: '' });
+                  setBooking({ service: null, date: null, time: '', firstName: '', lastName: '', email: '', phone: '', address: '', notes: '', recurring: 'none', recurringWeeks: 4 });
                   setStep('services');
                 }}
                 className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

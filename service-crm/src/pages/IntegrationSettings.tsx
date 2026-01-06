@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useTenant } from '../context/TenantContext';
 import { useToast } from '../context/ToastContext';
-import { CreditCard, MessageSquare, Save, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
+import { CreditCard, MessageSquare, Mail, Save, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function IntegrationSettings() {
   const { tenant } = useTenant();
@@ -22,6 +22,8 @@ export default function IntegrationSettings() {
     phone_number: ''
   });
 
+  const [resend, setResend] = useState({ api_key: '' });
+
   useEffect(() => {
     if (tenant) fetchSettings();
   }, [tenant]);
@@ -30,7 +32,7 @@ export default function IntegrationSettings() {
     if (!tenant) return;
     const { data } = await supabase
       .from('tenants')
-      .select('stripe_publishable_key, stripe_secret_key, twilio_account_sid, twilio_auth_token, twilio_phone_number')
+      .select('stripe_publishable_key, stripe_secret_key, twilio_account_sid, twilio_auth_token, twilio_phone_number, resend_api_key')
       .eq('id', tenant.id)
       .single();
 
@@ -44,6 +46,7 @@ export default function IntegrationSettings() {
         auth_token: data.twilio_auth_token || '',
         phone_number: data.twilio_phone_number || ''
       });
+      setResend({ api_key: data.resend_api_key || '' });
     }
     setLoading(false);
   };
@@ -60,6 +63,7 @@ export default function IntegrationSettings() {
         twilio_account_sid: twilio.account_sid || null,
         twilio_auth_token: twilio.auth_token || null,
         twilio_phone_number: twilio.phone_number || null,
+        resend_api_key: resend.api_key || null,
       })
       .eq('id', tenant.id);
 
@@ -210,6 +214,48 @@ export default function IntegrationSettings() {
               placeholder="+1234567890"
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
             />
+          </div>
+        </div>
+      </div>
+
+      {/* Resend Section */}
+      <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <Mail className="text-blue-600" size={20} />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">Resend</h2>
+            <p className="text-sm text-gray-500">Send email notifications to customers</p>
+          </div>
+          {resend.api_key ? (
+            <span className="ml-auto flex items-center gap-1 text-green-600 text-sm">
+              <CheckCircle size={16} /> Connected
+            </span>
+          ) : (
+            <span className="ml-auto flex items-center gap-1 text-gray-400 text-sm">
+              <AlertCircle size={16} /> Not configured
+            </span>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+          <div className="relative">
+            <input
+              type={showSecrets.resendKey ? 'text' : 'password'}
+              value={resend.api_key}
+              onChange={e => setResend({ api_key: e.target.value })}
+              placeholder="re_xxxxxxxx"
+              className="w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              type="button"
+              onClick={() => toggleSecret('resendKey')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showSecrets.resendKey ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
         </div>
       </div>
