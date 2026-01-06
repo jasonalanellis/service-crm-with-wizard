@@ -1,6 +1,31 @@
-# Service CRM Feature Build Progress - COMPLETE
+# Service CRM Feature Build Progress
 
-## All 20 Features DONE ✅
+## Batch 1: 20 Features DONE ✅
+## Batch 2: IN PROGRESS
+
+### Batch 2 Features:
+1. Real-time Notifications - IN PROGRESS
+2. SMS 2-Way Chat - PENDING
+3. Automated Follow-ups - PENDING
+4. Customer Loyalty Program - PENDING
+5. Quote to Booking Conversion - PENDING
+6. Team Chat/Internal Notes - PENDING
+7. Custom Booking Forms - PENDING
+8. Recurring Revenue Dashboard - PENDING
+9. Google Calendar Sync - PENDING
+10. Route Visualization Map - PENDING
+11. Customer Self-Service Portal - PENDING
+12. Automated Pricing Rules - PENDING
+13. Referral Program - PENDING
+14. Equipment Maintenance Log - PENDING
+15. Multi-Currency Support - PENDING
+16. API Webhooks - PENDING
+17. White-label Portal - PENDING
+18. Bulk Import/Export - PENDING
+19. Advanced Reporting - PENDING
+20. Mobile App (PWA) - PENDING
+
+## Batch 1: All 20 Features DONE ✅
 1. Customer Portal - ✅ /portal route
 2. Invoice Generation - ✅ Edge function deployed
 3. Payment History Dashboard - ✅ Page added

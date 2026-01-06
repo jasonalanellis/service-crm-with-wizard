@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt, Activity, Tag, Package, Megaphone, BarChart3, Bell, Clock, CreditCard, Globe, Plug, Box, DollarSign, ClockIcon, MapPin, Banknote } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, Star, Settings, Menu, X, LogOut, Wrench, Wallet, Receipt, Activity, Tag, Package, Megaphone, BarChart3, Bell, Clock, CreditCard, Globe, Plug, Box, DollarSign, ClockIcon, MapPin, Banknote, MessageSquare, Gift, ClipboardList, Share2, RefreshCw, TrendingUp, UsersRound, FileSignature, CheckSquare, History, HardDrive, Map } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useState } from 'react';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'payment-history' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'payment-history' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones';
 
 type SidebarProps = {
   currentPage: Page;
@@ -38,6 +38,21 @@ const navItems: { id: Page; label: string; icon: React.ElementType }[] = [
   { id: 'payment-settings', label: 'Payment Settings', icon: CreditCard },
   { id: 'portal-settings', label: 'Portal Settings', icon: Globe },
   { id: 'integration-settings', label: 'Integrations', icon: Plug },
+  { id: 'notifications', label: 'Notification Center', icon: Bell },
+  { id: 'messages', label: 'Messages', icon: MessageSquare },
+  { id: 'loyalty', label: 'Loyalty Program', icon: Gift },
+  { id: 'custom-forms', label: 'Custom Forms', icon: ClipboardList },
+  { id: 'referrals', label: 'Referrals', icon: Share2 },
+  { id: 'follow-ups', label: 'Follow-Ups', icon: RefreshCw },
+  { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+  { id: 'tags', label: 'Tags', icon: Tag },
+  { id: 'team', label: 'Team', icon: UsersRound },
+  { id: 'work-orders', label: 'Work Orders', icon: ClipboardList },
+  { id: 'checklists', label: 'Checklists', icon: CheckSquare },
+  { id: 'contracts', label: 'Contracts', icon: FileSignature },
+  { id: 'audit-log', label: 'Audit Log', icon: History },
+  { id: 'equipment', label: 'Equipment', icon: HardDrive },
+  { id: 'service-zones', label: 'Service Zones', icon: Map },
 ];
 
 export default function Sidebar({ currentPage, onNavigate, onLogout }: SidebarProps) {

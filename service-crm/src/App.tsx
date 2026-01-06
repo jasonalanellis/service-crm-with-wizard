@@ -36,8 +36,23 @@ import Expenses from './pages/Expenses';
 import Waitlist from './pages/Waitlist';
 import Locations from './pages/Locations';
 import Payroll from './pages/Payroll';
+import Notifications from './pages/Notifications';
+import Messages from './pages/Messages';
+import LoyaltyProgram from './pages/LoyaltyProgram';
+import CustomForms from './pages/CustomForms';
+import Referrals from './pages/Referrals';
+import FollowUps from './pages/FollowUps';
+import Analytics from './pages/Analytics';
+import Tags from './pages/Tags';
+import Team from './pages/Team';
+import WorkOrders from './pages/WorkOrders';
+import Checklists from './pages/Checklists';
+import Contracts from './pages/Contracts';
+import AuditLog from './pages/AuditLog';
+import Equipment from './pages/Equipment';
+import ServiceZones from './pages/ServiceZones';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'payment-history' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'payment-history' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -72,6 +87,21 @@ function AuthenticatedApp() {
       case 'waitlist': return <Waitlist />;
       case 'locations': return <Locations />;
       case 'payroll': return <Payroll />;
+      case 'notifications': return <Notifications />;
+      case 'messages': return <Messages />;
+      case 'loyalty': return <LoyaltyProgram />;
+      case 'custom-forms': return <CustomForms />;
+      case 'referrals': return <Referrals />;
+      case 'follow-ups': return <FollowUps />;
+      case 'analytics': return <Analytics />;
+      case 'tags': return <Tags />;
+      case 'team': return <Team />;
+      case 'work-orders': return <WorkOrders />;
+      case 'checklists': return <Checklists />;
+      case 'contracts': return <Contracts />;
+      case 'audit-log': return <AuditLog />;
+      case 'equipment': return <Equipment />;
+      case 'service-zones': return <ServiceZones />;
       default: return <Dashboard />;
     }
   };
