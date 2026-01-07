@@ -426,6 +426,14 @@ export default function MagicSetup({ onComplete }: Props) {
         .update({ tenant_id: tenantData.id, role: 'admin' })
         .eq('auth_id', authData.user.id);
 
+      // 5. Insert into welcome_sequence for onboarding automation
+      await supabase.from('welcome_sequence').insert({
+        tenant_id: tenantData.id,
+        email: data.email,
+        phone: data.contactPhone || data.phone,
+        sequence_step: 0,
+      });
+
       // Set booking URL
       const url = `${window.location.origin}/book?tenant=${tenantData.id}`;
       setBookingUrl(url);
@@ -871,9 +879,9 @@ export default function MagicSetup({ onComplete }: Props) {
                   <div className="flex items-start gap-3">
                     <Sparkles size={20} style={{ color: data.brandColor }} className="flex-shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-medium text-gray-900">Free for 30 days</div>
+                      <div className="font-medium text-gray-900">60 days free for your feedback!</div>
                       <p className="text-sm text-gray-500 mt-1">
-                        No credit card required. Cancel anytime.
+                        No credit card required. Just share your honest feedback.
                       </p>
                     </div>
                   </div>
@@ -1337,7 +1345,7 @@ export default function MagicSetup({ onComplete }: Props) {
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <div className="flex items-center gap-2 text-sm text-green-600 font-medium justify-center">
           <Sparkles size={16} />
-          Free 30 days - no card required
+          60 days free - just share your feedback
         </div>
       </div>
     </div>
