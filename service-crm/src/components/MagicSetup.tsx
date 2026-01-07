@@ -496,6 +496,16 @@ export default function MagicSetup({ onComplete }: Props) {
       setError('Please select your industry');
       return;
     }
+    if (step === 2 && showManualEntry && !data.businessName.trim()) {
+      setError('Please enter your business name');
+      return;
+    }
+    if (step === 2 && !showManualEntry && !data.businessName.trim()) {
+      // User didn't enter GBP URL or it failed - switch to manual entry
+      setShowManualEntry(true);
+      setError('Please enter your business name');
+      return;
+    }
     if (step === 3 && !data.email.trim()) {
       setError('Please enter your email');
       return;
