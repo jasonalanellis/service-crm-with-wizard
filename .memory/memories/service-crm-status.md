@@ -55,6 +55,25 @@ Built MVP: 11 tables, 3 apps, 4 edge functions, media bucket
 - Two tenants: Bravo Maids, Clean Town & Country
 - Using: Supabase, Buffer, Twilio, Resend
 
+## PENDING FEATURES (Pre-GitHub)
+### Smart Review System
+- Trigger: Tech completes job → SMS "Rate 1-5"
+- 5 stars: Tech photo + "Leave GBP review for tip!" + GBP link
+- 4 stars: Thank you + improvement ask
+- 1-3 stars: "This is Jason, the owner. Would you mind if I call?" → YES sends SMS to Jason
+- Follow-ups: 24h reminder, 3 days final
+- Dashboard: Review status tracking
+- Manual trigger toggle
+
+### Email Parsing (ConvertLabs)
+- Gmail forwarding from support@bravomaids.com
+- Parse: New Lead, New Booking emails from hello@convertlabs.io
+- Insert to leads/appointments tables
+
+### Config
+- GBP Link: https://g.page/r/CXubSUgYwpLFEBM/review
+- Jason's phone: (for owner callback alerts)
+
 ---
 ## KEY FILES
 - Full doc: /workspace/docs/SERVICE-CRM-PROJECT.md
