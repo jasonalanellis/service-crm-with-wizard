@@ -1,7 +1,8 @@
 # Magic Setup Wizard - COMPLETE (Production Ready)
 
 ## Status: Deployed
-- URL: https://hjo7n5u4i8ty.space.minimax.io
+- URL: https://mzkm15nm8xt5.space.minimax.io
+- `/setup` route is PUBLIC (no login required)
 
 ## Production Features:
 1. **Google Places API Integration** (lookup-gbp edge function)

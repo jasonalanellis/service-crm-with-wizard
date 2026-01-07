@@ -127,6 +127,8 @@ type SetupData = {
   logoUrl: string | null;
   services: Array<{ name: string; duration: number; price: number; enabled: boolean }>;
   contactPhone: string;
+  email: string;
+  password: string;
 };
 
 type Props = {
@@ -154,6 +156,8 @@ export default function MagicSetup({ onComplete }: Props) {
     logoUrl: null,
     services: [],
     contactPhone: '',
+    email: '',
+    password: '',
   });
 
   const TOTAL_STEPS = 7;
@@ -258,18 +262,36 @@ export default function MagicSetup({ onComplete }: Props) {
       setError('Business name is required');
       return;
     }
+    if (!data.email.trim()) {
+      setError('Email is required');
+      return;
+    }
+    if (!data.password || data.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
 
     setLoading(true);
     setError('');
 
     try {
-      // Create tenant
+      // 1. Create user account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Failed to create account');
+
+      // 2. Create tenant
       const { data: tenantData, error: tenantError } = await supabase
         .from('tenants')
         .insert({
           name: data.businessName,
           slug: generateSlug(data.businessName),
           phone: data.phone,
+          email: data.email,
           settings: {
             industry: data.industry,
             brand_color: data.brandColor,
@@ -291,7 +313,7 @@ export default function MagicSetup({ onComplete }: Props) {
 
       if (tenantError) throw tenantError;
 
-      // Create services
+      // 3. Create services
       const enabledServices = data.services.filter(s => s.enabled);
       if (enabledServices.length > 0) {
         await supabase.from('services').insert(
@@ -306,14 +328,11 @@ export default function MagicSetup({ onComplete }: Props) {
         );
       }
 
-      // Get auth user and link profile
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase
-          .from('user_profiles')
-          .update({ tenant_id: tenantData.id, role: 'admin' })
-          .eq('auth_id', user.id);
-      }
+      // 4. Link user profile to tenant
+      await supabase
+        .from('user_profiles')
+        .update({ tenant_id: tenantData.id, role: 'admin' })
+        .eq('auth_id', authData.user.id);
 
       // Set booking URL
       const url = `${window.location.origin}/book?tenant=${tenantData.id}`;
@@ -322,7 +341,7 @@ export default function MagicSetup({ onComplete }: Props) {
       localStorage.setItem('setupComplete', 'true');
       localStorage.setItem('selectedTenantId', tenantData.id);
       
-      setStep(7); // Go to final step
+      setStep(7); // Go to final step with booking link
     } catch (err: any) {
       console.error('Setup error:', err);
       setError(err.message || 'Failed to complete setup');
@@ -844,30 +863,62 @@ export default function MagicSetup({ onComplete }: Props) {
               </div>
             )}
 
-            {/* Step 6: Preview */}
+            {/* Step 6: Preview + Account Creation */}
             {step === 6 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Looking good!</h2>
-                  <p className="text-gray-500 mt-1">Here's a preview of your booking page</p>
+                  <h2 className="text-2xl font-bold text-gray-900">Almost there!</h2>
+                  <p className="text-gray-500 mt-1">Create your account to get your live booking link</p>
                 </div>
 
-                {/* Mobile preview visible on desktop */}
+                {/* Mobile preview */}
                 <div className="lg:hidden">
-                  <div className="bg-gray-100 rounded-2xl p-4">
+                  <div className="bg-gray-100 rounded-2xl p-4 mb-4">
                     <BookingPreview />
+                  </div>
+                </div>
+
+                {/* Account creation form */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                    <input
+                      type="email"
+                      value={data.email}
+                      onChange={(e) => setData(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500"
+                      placeholder="you@yourbusiness.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Create Password *</label>
+                    <input
+                      type="password"
+                      value={data.password}
+                      onChange={(e) => setData(prev => ({ ...prev, password: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500"
+                      placeholder="At least 6 characters"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Your Phone (for SMS link)</label>
+                    <input
+                      type="tel"
+                      value={data.contactPhone}
+                      onChange={(e) => setData(prev => ({ ...prev, contactPhone: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500"
+                      placeholder="(555) 123-4567"
+                    />
                   </div>
                 </div>
 
                 <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <Check size={16} className="text-green-600" />
-                    </div>
+                    <Sparkles size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-medium text-green-900">Ready to launch!</div>
+                      <div className="font-medium text-green-900">Free for 30 days</div>
                       <p className="text-sm text-green-700 mt-1">
-                        Click continue to create your booking page. You can always customize it later.
+                        No credit card required. Start accepting bookings immediately.
                       </p>
                     </div>
                   </div>
@@ -1017,7 +1068,7 @@ export default function MagicSetup({ onComplete }: Props) {
                     <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
                   ) : (
                     <>
-                      {step === 6 ? 'Create My Page' : 'Continue'}
+                      {step === 6 ? 'Get My Booking Link' : 'Continue'}
                       <ArrowRight size={18} />
                     </>
                   )}

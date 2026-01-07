@@ -253,26 +253,13 @@ function AppContent() {
     return <ToastProvider><ManageBooking /></ToastProvider>;
   }
 
-  // Handle magic setup route - entry point for new users
+  // Handle magic setup route - PUBLIC, no auth required
   if (window.location.pathname.startsWith('/setup')) {
-    // If not logged in, show signup first then redirect to setup
-    if (!user && !loading) {
-      return (
-        <ToastProvider>
-          <Signup onSwitchToLogin={() => setAuthView('login')} />
-        </ToastProvider>
-      );
-    }
-    // If logged in, show magic setup
-    if (user) {
-      return (
-        <TenantProvider>
-          <ToastProvider>
-            <MagicSetup onComplete={() => window.location.href = '/'} />
-          </ToastProvider>
-        </TenantProvider>
-      );
-    }
+    return (
+      <ToastProvider>
+        <MagicSetup onComplete={() => window.location.href = '/'} />
+      </ToastProvider>
+    );
   }
 
   if (loading) {
