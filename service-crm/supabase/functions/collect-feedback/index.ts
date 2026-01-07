@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { action, tenantId, phone, rating, improvement, bug, feedbackType } = await req.json();
+    const { action, tenantId, phone, rating, improvement, bug } = await req.json();
     
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -19,9 +19,9 @@ Deno.serve(async (req) => {
       throw new Error('Supabase configuration missing');
     }
 
-    // Action: store feedback
+    // Action: store feedback in user_feedback table
     if (action === 'store') {
-      const insertResponse = await fetch(`${supabaseUrl}/rest/v1/feedback`, {
+      const insertResponse = await fetch(`${supabaseUrl}/rest/v1/user_feedback`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${serviceRoleKey}`,
@@ -32,9 +32,8 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           tenant_id: tenantId,
           rating: rating,
-          improvement: improvement,
-          bug: bug,
-          feedback_type: feedbackType || 'manual'
+          improvement_suggestion: improvement,
+          bug_report: bug
         })
       });
 
@@ -59,22 +58,18 @@ Deno.serve(async (req) => {
         throw new Error('Phone and tenant ID required for feedback request');
       }
 
-      // Get Twilio credentials
       const twilioSid = Deno.env.get('TWILIO_ACCOUNT_SID');
       const twilioToken = Deno.env.get('TWILIO_AUTH_TOKEN');
       const twilioPhone = Deno.env.get('TWILIO_PHONE_NUMBER');
 
       const message = `Hey! How's your booking page working out? Reply with:\n1-5 rating\nOne thing we could improve\nAny bugs?\n\nExample: "5, faster loading, none"`;
 
-      // Format phone
       let formattedPhone = phone.replace(/\D/g, '');
       if (formattedPhone.length === 10) formattedPhone = '1' + formattedPhone;
       if (!formattedPhone.startsWith('+')) formattedPhone = '+' + formattedPhone;
 
       if (!twilioSid || !twilioToken || !twilioPhone) {
         console.log('Feedback SMS would be sent to:', formattedPhone);
-        console.log('Message:', message);
-        
         return new Response(JSON.stringify({
           success: true,
           data: { message: 'Feedback request queued', phone: formattedPhone, demo: true }
@@ -83,7 +78,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Send via Twilio
       const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`;
       const auth = btoa(`${twilioSid}:${twilioToken}`);
 
@@ -115,10 +109,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Action: get feedback for tenant
+    // Action: get feedback for tenant from user_feedback table
     if (action === 'get') {
       const getResponse = await fetch(
-        `${supabaseUrl}/rest/v1/feedback?tenant_id=eq.${tenantId}&order=created_at.desc`,
+        `${supabaseUrl}/rest/v1/user_feedback?tenant_id=eq.${tenantId}&order=created_at.desc`,
         {
           headers: {
             'Authorization': `Bearer ${serviceRoleKey}`,

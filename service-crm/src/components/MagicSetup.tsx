@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase';
 import Confetti from 'react-confetti';
 import { QRCodeSVG } from 'qrcode.react';
 import { FacebookShareButton, TwitterShareButton, LinkedinShareButton, WhatsappShareButton, FacebookIcon, TwitterIcon, LinkedinIcon, WhatsappIcon } from 'react-share';
+import { toast, Toaster } from 'sonner';
 
 const STORAGE_KEY = 'magic_setup_progress';
 
@@ -153,9 +154,6 @@ export default function MagicSetup({ onComplete }: Props) {
   const [bookingUrl, setBookingUrl] = useState('');
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [invitePhone, setInvitePhone] = useState('');
-  const [inviteSent, setInviteSent] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [invitePhone, setInvitePhone] = useState('');
   const [inviteSent, setInviteSent] = useState(false);
@@ -459,7 +457,7 @@ export default function MagicSetup({ onComplete }: Props) {
 
   const sendSmsLink = async () => {
     if (!data.contactPhone) {
-      setError('Please enter your phone number');
+      toast.error('Please enter your phone number');
       return;
     }
     
@@ -481,16 +479,13 @@ export default function MagicSetup({ onComplete }: Props) {
 
       if (result?.success) {
         setSmsSent(true);
-        // After short delay, complete setup
-        setTimeout(() => {
-          onComplete();
-        }, 2000);
+        toast.success('SMS sent! Check your phone 📱');
       } else {
         throw new Error(result?.error?.message || 'Failed to send SMS');
       }
     } catch (err: any) {
       console.error('SMS send error:', err);
-      setError(err.message || 'Failed to send SMS. Please try again.');
+      toast.error(err.message || 'Failed to send SMS. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -602,6 +597,7 @@ export default function MagicSetup({ onComplete }: Props) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <Toaster position="top-center" richColors />
       {/* Header with Avatar */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -805,50 +801,7 @@ export default function MagicSetup({ onComplete }: Props) {
                   </div>
                 )}
 
-                {/* Fallback: show manual fields below GBP if nothing entered */}
-                {!showManualEntry && !data.businessName && (
-                  <>
-                      </div>
-                    </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Business Name *</label>
-                      <input
-                        type="text"
-                        value={data.businessName}
-                        onChange={(e) => setData(prev => ({ ...prev, businessName: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
-                        style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
-                        placeholder="Your Business Name"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                        <input
-                          type="tel"
-                          value={data.phone}
-                          onChange={(e) => setData(prev => ({ ...prev, phone: e.target.value }))}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
-                          placeholder="(555) 123-4567"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                        <input
-                          type="text"
-                          value={data.address}
-                          onChange={(e) => setData(prev => ({ ...prev, address: e.target.value }))}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
-                          placeholder="123 Main St, City"
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
               </div>
             )}
 
@@ -879,9 +832,9 @@ export default function MagicSetup({ onComplete }: Props) {
                   <div className="flex items-start gap-3">
                     <Sparkles size={20} style={{ color: data.brandColor }} className="flex-shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-medium text-gray-900">60 days free for your feedback!</div>
+                      <div className="font-medium text-gray-900">🏆 Join as a Founding Member</div>
                       <p className="text-sm text-gray-500 mt-1">
-                        No credit card required. Just share your honest feedback.
+                        60 days free in exchange for your feedback. No credit card required.
                       </p>
                     </div>
                   </div>
@@ -1195,13 +1148,27 @@ export default function MagicSetup({ onComplete }: Props) {
                         />
                         <button
                           onClick={async () => {
-                            if (!invitePhone) return;
+                            if (!invitePhone) {
+                              toast.error('Please enter a phone number');
+                              return;
+                            }
                             setLoading(true);
-                            await supabase.functions.invoke('send-sms', {
-                              body: { phone: invitePhone, message: `Book your appointment with ${data.businessName}: ${bookingUrl}` }
-                            });
-                            setLoading(false);
-                            setInviteSent(true);
+                            try {
+                              const { data: result, error } = await supabase.functions.invoke('send-sms', {
+                                body: { phone: invitePhone, message: `Book your appointment with ${data.businessName}: ${bookingUrl}` }
+                              });
+                              if (error) throw error;
+                              if (result?.success) {
+                                setInviteSent(true);
+                                toast.success('Invite sent to your customer! 🎉');
+                              } else {
+                                throw new Error('Failed to send');
+                              }
+                            } catch (err) {
+                              toast.error('Failed to send invite. Please try again.');
+                            } finally {
+                              setLoading(false);
+                            }
                           }}
                           disabled={loading || inviteSent || !invitePhone}
                           className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
@@ -1345,7 +1312,7 @@ export default function MagicSetup({ onComplete }: Props) {
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <div className="flex items-center gap-2 text-sm text-green-600 font-medium justify-center">
           <Sparkles size={16} />
-          60 days free - just share your feedback
+          Founding Member: 60 days free
         </div>
       </div>
     </div>
