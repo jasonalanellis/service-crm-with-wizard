@@ -617,7 +617,7 @@ export default function MagicSetup({ onComplete }: Props) {
           </div>
           <div className="hidden sm:flex items-center gap-2 text-sm text-green-600 font-medium">
             <Sparkles size={16} />
-            Free 30 days - no card required
+            Founding Member - 90 days free
           </div>
         </div>
       </header>
@@ -857,7 +857,7 @@ export default function MagicSetup({ onComplete }: Props) {
                     <div>
                       <div className="font-medium text-gray-900">🏆 Join as a Founding Member</div>
                       <p className="text-sm text-gray-500 mt-1">
-                        60 days free in exchange for your feedback. No credit card required.
+                        90 days free in exchange for your feedback. No credit card required.
                       </p>
                     </div>
                   </div>
@@ -1335,7 +1335,7 @@ export default function MagicSetup({ onComplete }: Props) {
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <div className="flex items-center gap-2 text-sm text-green-600 font-medium justify-center">
           <Sparkles size={16} />
-          Founding Member: 60 days free
+          Founding Member: 90 days free
         </div>
       </div>
     </div>
