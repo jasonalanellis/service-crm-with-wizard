@@ -62,6 +62,9 @@ export default function Login({ onSwitchToSignup }: Props) {
               placeholder="Enter your password"
               required
             />
+            <div className="text-right mt-1">
+              <a href="#" className="text-sm text-blue-600 hover:underline">Forgot password?</a>
+            </div>
           </div>
           <button
             type="submit"

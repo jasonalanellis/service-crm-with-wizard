@@ -625,7 +625,7 @@ export default function MagicSetup({ onComplete }: Props) {
               <Sparkles className="text-white" size={20} />
             </div>
             <div>
-              <div className="font-semibold text-gray-900">Magic Setup</div>
+              <div className="font-semibold text-gray-900">Local Service Stack</div>
               <div className="text-xs text-gray-500">Get your booking link in 5 minutes</div>
             </div>
           </div>
