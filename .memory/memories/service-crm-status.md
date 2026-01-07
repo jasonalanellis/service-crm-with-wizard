@@ -55,25 +55,48 @@ Built MVP: 11 tables, 3 apps, 4 edge functions, media bucket
 - Two tenants: Bravo Maids, Clean Town & Country
 - Using: Supabase, Buffer, Twilio, Resend
 
-## PENDING FEATURES (Pre-GitHub)
-### Smart Review System
-- Trigger: Tech completes job → SMS "Rate 1-5"
-- 5 stars: Tech photo + "Leave GBP review for tip!" + GBP link
-- 4 stars: Thank you + improvement ask
-- 1-3 stars: "This is Jason, the owner. Would you mind if I call?" → YES sends SMS to Jason
-- Follow-ups: 24h reminder, 3 days final
-- Dashboard: Review status tracking
-- Manual trigger toggle
-
-### Email Parsing (ConvertLabs)
-- Gmail forwarding from support@bravomaids.com
-- Parse: New Lead, New Booking emails from hello@convertlabs.io
-- Insert to leads/appointments tables
+## PENDING FEATURES - FULL BUILD
 
 ### Config
 - GBP Link: https://g.page/r/CXubSUgYwpLFEBM/review
 - Jason's phone: 6185817272
-- Tech photos: Stock cleaner photo + cleaner name (no individual photos)
+- Tech photos: Stock cleaner photo + [Cleaner Name] dynamic
+- Brand colors: Bravo Maids #37c170, CTC #0e9ede
+
+### Phase 1: Smart Review System
+- Trigger: Tech completes job → SMS "Rate 1-5"
+- 5 stars: Stock photo + "[Name] cleaned today!" + GBP link + tip mention
+- 4 stars: Thank you + improvement ask
+- 1-3 stars: "This is Jason, the owner. Would you mind if I call?" → YES sends SMS to 6185817272
+- Follow-ups: 24h reminder, 3 days final
+- Dashboard: Review status tracking (Sent/Replied/Pending/Escalated)
+- Manual trigger toggle
+
+### Phase 2: Email Parsing (ConvertLabs)
+- Gmail forwarding webhook
+- Parse: New Lead, New Booking emails from hello@convertlabs.io
+- Insert to leads/appointments tables
+
+### Phase 3: Branding
+- Logo upload per tenant
+- Brand color picker per tenant
+- Apply to sidebar, buttons, accents
+
+### Phase 4: Automated Workflows (n8n)
+- Smart rebooking: 14+ days since last clean → "Ready for next clean?"
+- Win-back: 60 days inactive → personalized offer
+- Birthday/anniversary: Auto discount/thank you
+- Weather upsell: Rain + outdoor event → deep clean offer
+- Referral nudge: After 5-star → referral link
+- Quote follow-up: 48h no booking → reminder
+- Payment reminder: Invoice unpaid 3+ days
+- Recurring confirmation: 2 days before scheduled
+
+### Phase 5: RAG/AI (n8n)
+- Customer Q&A bot from knowledge base
+- Smart response suggestions
+- Lead qualification scoring
+- Complaint resolution suggestions
 
 ---
 ## KEY FILES
