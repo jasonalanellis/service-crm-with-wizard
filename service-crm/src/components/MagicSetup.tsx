@@ -136,6 +136,7 @@ type SetupData = {
   contactPhone: string;
   email: string;
   password: string;
+  foundingMember: boolean;
 };
 
 type Props = {
@@ -180,6 +181,7 @@ export default function MagicSetup({ onComplete }: Props) {
       contactPhone: '',
       email: '',
       password: '',
+      foundingMember: false,
     };
   });
 
@@ -387,6 +389,8 @@ export default function MagicSetup({ onComplete }: Props) {
             brand_color: data.brandColor,
             logo_url: data.logoUrl,
             address: data.address,
+            founding_member: data.foundingMember,
+            trial_days: data.foundingMember ? 90 : 30,
             business_hours: {
               monday: { enabled: true, open: '09:00', close: '17:00' },
               tuesday: { enabled: true, open: '09:00', close: '17:00' },
@@ -627,7 +631,7 @@ export default function MagicSetup({ onComplete }: Props) {
           </div>
           <div className="hidden sm:flex items-center gap-2 text-sm text-green-600 font-medium">
             <Sparkles size={16} />
-            Founding Member - 90 days free
+            No credit card required - 30 days free
           </div>
         </div>
       </header>
@@ -861,17 +865,34 @@ export default function MagicSetup({ onComplete }: Props) {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <label 
+                  className={`block rounded-xl p-4 cursor-pointer transition-all border-2 ${
+                    data.foundingMember 
+                      ? 'border-amber-400 bg-amber-50' 
+                      : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                  }`}
+                >
                   <div className="flex items-start gap-3">
-                    <Sparkles size={20} style={{ color: data.brandColor }} className="flex-shrink-0 mt-0.5" />
+                    <input
+                      type="checkbox"
+                      checked={data.foundingMember}
+                      onChange={(e) => setData(prev => ({ ...prev, foundingMember: e.target.checked }))}
+                      className="mt-1 w-5 h-5 rounded border-gray-300"
+                      style={{ accentColor: '#f59e0b' }}
+                    />
                     <div>
-                      <div className="font-medium text-gray-900">🏆 Join as a Founding Member</div>
-                      <p className="text-sm text-gray-500 mt-1">
-                        90 days free in exchange for your feedback. No credit card required.
+                      <div className="font-medium text-gray-900 flex items-center gap-2">
+                        🏆 Join the Founding Member Circle
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        <span className="font-semibold text-amber-600">90 days free</span> + shape the future of home service software.
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Your feedback builds what we create next. Be part of an exclusive tribe of home service pros.
                       </p>
                     </div>
                   </div>
-                </div>
+                </label>
               </div>
             )}
 
@@ -1345,7 +1366,7 @@ export default function MagicSetup({ onComplete }: Props) {
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <div className="flex items-center gap-2 text-sm text-green-600 font-medium justify-center">
           <Sparkles size={16} />
-          Founding Member: 90 days free
+          No credit card required - 30 days free
         </div>
       </div>
     </div>
