@@ -576,7 +576,11 @@ export default function MagicSetup({ onComplete }: Props) {
     const Icon = ind.icon;
     return (
       <button
-        onClick={() => setData(prev => ({ ...prev, industry: id }))}
+        onClick={() => {
+          setData(prev => ({ ...prev, industry: id }));
+          setError('');
+          setStep(2);
+        }}
         className={`p-5 rounded-xl border-2 transition-all text-left ${
           selected 
             ? 'border-green-500 bg-green-50 shadow-lg scale-[1.02]' 
@@ -663,6 +667,8 @@ export default function MagicSetup({ onComplete }: Props) {
                       } else {
                         // If expanded and clicking again, select "other" as generic
                         setData(prev => ({ ...prev, industry: 'other' }));
+                        setError('');
+                        setStep(2);
                       }
                     }}
                     className={`p-5 rounded-xl border-2 transition-all text-left ${
@@ -801,6 +807,23 @@ export default function MagicSetup({ onComplete }: Props) {
                   </div>
                 )}
 
+                {/* Show business name field if GBP lookup didn't populate it */}
+                {!showManualEntry && !data.businessName && gbpUrl && !gbpLoading && (
+                  <div className="space-y-4 pt-4 border-t border-gray-200">
+                    <p className="text-sm text-amber-600">We couldn't find your business details. Please enter manually:</p>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Business Name *</label>
+                      <input
+                        type="text"
+                        value={data.businessName}
+                        onChange={(e) => setData(prev => ({ ...prev, businessName: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
+                        placeholder="Your Business Name"
+                      />
+                    </div>
+                  </div>
+                )}
 
               </div>
             )}
