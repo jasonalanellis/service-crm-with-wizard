@@ -1,6 +1,39 @@
-# Setup Wizard Implementation - COMPLETE
+# Magic Setup Wizard - COMPLETE (Production Ready)
 
-## Status: Done
+## Status: Deployed
+- URL: https://hjo7n5u4i8ty.space.minimax.io
+
+## Production Features:
+1. **Google Places API Integration** (lookup-gbp edge function)
+   - Real business data from GBP URLs (name, address, phone)
+   - Tested: Returns actual Starbucks data with address and phone
+   
+2. **Logo Upload to Supabase Storage** (upload-logo edge function)
+   - Uploads to 'business-logos' bucket (2MB limit)
+   - Returns permanent public URL
+   
+3. **SMS Sending** (send-sms edge function)
+   - Production-ready Twilio integration
+   - Works in demo mode until Twilio creds added
+   - Requires: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
+
+## All 7 Steps:
+1. Industry Selection (4 cards + expandable Other)
+2. GBP URL autofill (real Google Places API)
+3. Brand Color picker
+4. Logo Upload (persistent storage)
+5. Services (pre-populated by industry)
+6. Preview
+7. Get Link (SMS feature)
+
+## Edge Functions Deployed:
+- lookup-gbp: https://yglaxwekbyfjmbhcwqhi.supabase.co/functions/v1/lookup-gbp
+- upload-logo: https://yglaxwekbyfjmbhcwqhi.supabase.co/functions/v1/upload-logo
+- send-sms: https://yglaxwekbyfjmbhcwqhi.supabase.co/functions/v1/send-sms
+
+## Test Account:
+- Email: gujtgmih@minimax.com
+- Password: CkPaSMqC6P
 - Live URL: https://ihjuxu5zaspn.space.minimax.io
 - Zip file: /workspace/service-crm-with-wizard.zip
 

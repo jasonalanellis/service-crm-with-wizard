@@ -79,6 +79,7 @@ import PerformanceScorecard from './pages/PerformanceScorecard';
 import MultiLocationDashboard from './pages/MultiLocationDashboard';
 import ReviewDashboard from './pages/ReviewDashboard';
 import SetupWizard from './components/SetupWizard';
+import MagicSetup from './components/MagicSetup';
 
 type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'review-dashboard' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'payment-history' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones' | 'email-templates' | 'sms-templates' | 'recurring-bookings' | 'revenue-forecast' | 'gift-cards' | 'customer-segments' | 'staff-certifications' | 'package-builder' | 'business-hours-exceptions' | 'customer-surveys' | 'knowledge-base' | 'capacity-planning' | 'price-rules' | 'deposits' | 'suppliers' | 'slas' | 'auto-scheduler' | 'resource-optimization' | 'performance-scorecard' | 'multi-location';
 
@@ -102,7 +103,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
   }
 
   if (needsSetup) {
-    return <SetupWizard onComplete={handleSetupComplete} />;
+    return <MagicSetup onComplete={handleSetupComplete} />;
   }
 
   const renderPage = () => {
@@ -250,6 +251,28 @@ function AppContent() {
   // Handle manage booking route (reschedule/cancel)
   if (window.location.pathname.startsWith('/manage')) {
     return <ToastProvider><ManageBooking /></ToastProvider>;
+  }
+
+  // Handle magic setup route - entry point for new users
+  if (window.location.pathname.startsWith('/setup')) {
+    // If not logged in, show signup first then redirect to setup
+    if (!user && !loading) {
+      return (
+        <ToastProvider>
+          <Signup onSwitchToLogin={() => setAuthView('login')} />
+        </ToastProvider>
+      );
+    }
+    // If logged in, show magic setup
+    if (user) {
+      return (
+        <TenantProvider>
+          <ToastProvider>
+            <MagicSetup onComplete={() => window.location.href = '/'} />
+          </ToastProvider>
+        </TenantProvider>
+      );
+    }
   }
 
   if (loading) {
