@@ -206,7 +206,17 @@ export default function MagicSetup({ onComplete }: Props) {
 
   // When industry changes, populate services
   useEffect(() => {
-    if (data.industry && INDUSTRIES[data.industry as keyof typeof INDUSTRIES]) {
+    if (data.industry === 'other') {
+      // Generic services for "other" industry
+      setData(prev => ({
+        ...prev,
+        services: [
+          { name: 'Basic Service', duration: 60, price: 75, enabled: true },
+          { name: 'Standard Service', duration: 90, price: 125, enabled: true },
+          { name: 'Premium Service', duration: 120, price: 200, enabled: true },
+        ],
+      }));
+    } else if (data.industry && INDUSTRIES[data.industry as keyof typeof INDUSTRIES]) {
       const ind = INDUSTRIES[data.industry as keyof typeof INDUSTRIES];
       setData(prev => ({
         ...prev,
@@ -394,6 +404,10 @@ export default function MagicSetup({ onComplete }: Props) {
       setError('Please select your industry');
       return;
     }
+    if (step === 3 && !data.email.trim()) {
+      setError('Please enter your email');
+      return;
+    }
     if (step === 6) {
       handleComplete();
       return;
@@ -550,9 +564,16 @@ export default function MagicSetup({ onComplete }: Props) {
                   
                   {/* Other option */}
                   <button
-                    onClick={() => setShowOtherIndustries(!showOtherIndustries)}
+                    onClick={() => {
+                      if (!showOtherIndustries) {
+                        setShowOtherIndustries(true);
+                      } else {
+                        // If expanded and clicking again, select "other" as generic
+                        setData(prev => ({ ...prev, industry: 'other' }));
+                      }
+                    }}
                     className={`p-5 rounded-xl border-2 transition-all text-left ${
-                      otherIndustries.includes(data.industry)
+                      data.industry === 'other' || otherIndustries.includes(data.industry)
                         ? 'border-green-500 bg-green-50'
                         : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
@@ -562,8 +583,9 @@ export default function MagicSetup({ onComplete }: Props) {
                     </div>
                     <div className="font-semibold text-gray-900">Other</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      {showOtherIndustries ? 'Click to collapse' : 'Show more options'}
+                      {showOtherIndustries ? 'Select a category or click again for generic' : 'Show more options'}
                     </div>
+                    {data.industry === 'other' && <Check size={18} className="text-green-500 mt-2" />}
                   </button>
                 </div>
 
@@ -657,8 +679,45 @@ export default function MagicSetup({ onComplete }: Props) {
               </div>
             )}
 
-            {/* Step 3: Brand Color */}
+            {/* Step 3: Where to send your link (Email) */}
             {step === 3 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Where should we send your link?</h2>
+                  <p className="text-gray-500 mt-1">We'll email you your live booking page when it's ready</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Your email</label>
+                    <input
+                      type="email"
+                      value={data.email}
+                      onChange={(e) => setData(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
+                      placeholder="you@yourbusiness.com"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <Sparkles size={20} style={{ color: data.brandColor }} className="flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-medium text-gray-900">Free for 30 days</div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        No credit card required. Cancel anytime.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Brand Color */}
+            {step === 4 && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Pick your brand color</h2>
@@ -706,66 +765,6 @@ export default function MagicSetup({ onComplete }: Props) {
                     />
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Step 4: Logo Upload */}
-            {step === 4 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Add your logo</h2>
-                  <p className="text-gray-500 mt-1">Optional - make your booking page uniquely yours</p>
-                </div>
-
-                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-gray-400 transition-colors">
-                  {data.logoUrl ? (
-                    <div className="relative inline-block">
-                      <img 
-                        src={data.logoUrl} 
-                        alt="Logo preview" 
-                        className="w-32 h-32 object-contain rounded-xl"
-                      />
-                      <button
-                        onClick={() => setData(prev => ({ ...prev, logoUrl: null }))}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div 
-                        className="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-                        style={{ backgroundColor: `${data.brandColor}15` }}
-                      >
-                        <Upload size={32} style={{ color: data.brandColor }} />
-                      </div>
-                      <p className="text-gray-600 mb-2">Drag and drop your logo here, or</p>
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-4 py-2 rounded-lg font-medium text-white"
-                        style={{ backgroundColor: data.brandColor }}
-                      >
-                        Choose File
-                      </button>
-                      <p className="text-xs text-gray-400 mt-3">PNG, JPG, or SVG. Max 2MB.</p>
-                    </>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoUpload}
-                    className="hidden"
-                  />
-                </div>
-
-                <button
-                  onClick={nextStep}
-                  className="text-sm text-gray-500 hover:text-gray-700 underline"
-                >
-                  Skip for now
-                </button>
               </div>
             )}
 
@@ -863,12 +862,12 @@ export default function MagicSetup({ onComplete }: Props) {
               </div>
             )}
 
-            {/* Step 6: Preview + Account Creation */}
+            {/* Step 6: Preview */}
             {step === 6 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Almost there!</h2>
-                  <p className="text-gray-500 mt-1">Create your account to get your live booking link</p>
+                  <h2 className="text-2xl font-bold text-gray-900">Looking good!</h2>
+                  <p className="text-gray-500 mt-1">Here's a preview of your booking page</p>
                 </div>
 
                 {/* Mobile preview */}
@@ -878,47 +877,39 @@ export default function MagicSetup({ onComplete }: Props) {
                   </div>
                 </div>
 
-                {/* Account creation form */}
+                {/* Password to secure account */}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                    <input
-                      type="email"
-                      value={data.email}
-                      onChange={(e) => setData(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500"
-                      placeholder="you@yourbusiness.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Create Password *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Create a password to secure your account</label>
                     <input
                       type="password"
                       value={data.password}
                       onChange={(e) => setData(prev => ({ ...prev, password: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
                       placeholder="At least 6 characters"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Your Phone (for SMS link)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone number (we'll text you your link)</label>
                     <input
                       type="tel"
                       value={data.contactPhone}
                       onChange={(e) => setData(prev => ({ ...prev, contactPhone: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
                       placeholder="(555) 123-4567"
                     />
                   </div>
                 </div>
 
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                <div className="rounded-xl p-4 border" style={{ backgroundColor: `${data.brandColor}10`, borderColor: `${data.brandColor}30` }}>
                   <div className="flex items-start gap-3">
-                    <Sparkles size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
+                    <Check size={20} style={{ color: data.brandColor }} className="flex-shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-medium text-green-900">Free for 30 days</div>
-                      <p className="text-sm text-green-700 mt-1">
-                        No credit card required. Start accepting bookings immediately.
+                      <div className="font-medium text-gray-900">Ready to go live!</div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Click below to create your booking page and get your link.
                       </p>
                     </div>
                   </div>

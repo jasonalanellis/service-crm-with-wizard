@@ -1,8 +1,17 @@
 # Magic Setup Wizard - COMPLETE (Production Ready)
 
 ## Status: Deployed
-- URL: https://mzkm15nm8xt5.space.minimax.io
+- URL: https://5anvobcycq9r.space.minimax.io
 - `/setup` route is PUBLIC (no login required)
+
+## Step Order (Updated):
+1. Industry Selection (4 cards + Other with "other" value)
+2. GBP Autofill
+3. "Where should we send your link?" (Email - framed as delivery)
+4. Brand Colors
+5. Services (pre-populated)
+6. Preview + Password + Phone
+7. Get Your Link (SMS + booking URL)
 
 ## Production Features:
 1. **Google Places API Integration** (lookup-gbp edge function)
