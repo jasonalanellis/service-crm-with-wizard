@@ -72,7 +72,8 @@ Built MVP: 11 tables, 3 apps, 4 edge functions, media bucket
 
 ### Config
 - GBP Link: https://g.page/r/CXubSUgYwpLFEBM/review
-- Jason's phone: (for owner callback alerts)
+- Jason's phone: 6185817272
+- Tech photos: Stock cleaner photo + cleaner name (no individual photos)
 
 ---
 ## KEY FILES
