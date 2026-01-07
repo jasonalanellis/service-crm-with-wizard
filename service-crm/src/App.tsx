@@ -77,12 +77,32 @@ import AutoScheduler from './pages/AutoScheduler';
 import ResourceOptimization from './pages/ResourceOptimization';
 import PerformanceScorecard from './pages/PerformanceScorecard';
 import MultiLocationDashboard from './pages/MultiLocationDashboard';
+import SetupWizard from './components/SetupWizard';
 
 type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'payment-history' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones' | 'email-templates' | 'sms-templates' | 'recurring-bookings' | 'revenue-forecast' | 'gift-cards' | 'customer-segments' | 'staff-certifications' | 'package-builder' | 'business-hours-exceptions' | 'customer-surveys' | 'knowledge-base' | 'capacity-planning' | 'price-rules' | 'deposits' | 'suppliers' | 'slas' | 'auto-scheduler' | 'resource-optimization' | 'performance-scorecard' | 'multi-location';
 
-function AuthenticatedApp() {
+function MainApp({ onLogout }: { onLogout: () => void }) {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-  const { signOut } = useAuth();
+  const [showWelcome, setShowWelcome] = useState(false);
+  const { needsSetup, refreshTenants, tenant, loading } = useTenant();
+
+  const handleSetupComplete = async () => {
+    await refreshTenants();
+    setShowWelcome(true);
+    setTimeout(() => setShowWelcome(false), 5000);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (needsSetup) {
+    return <SetupWizard onComplete={handleSetupComplete} />;
+  }
 
   const renderPage = () => {
     switch (currentPage) {
@@ -153,17 +173,20 @@ function AuthenticatedApp() {
   };
 
   return (
-    <TenantProvider>
-      <ToastProvider>
-        <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-          <KeyboardShortcuts onNavigate={(p) => setCurrentPage(p as Page)} />
-          <OnboardingTour />
-          <RecentActivitySidebar />
-          <SessionTimeoutWarning timeoutMinutes={30} warningMinutes={1} onTimeout={signOut} />
-          <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} onLogout={signOut} />
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+      <KeyboardShortcuts onNavigate={(p) => setCurrentPage(p as Page)} />
+      <OnboardingTour />
+      <RecentActivitySidebar />
+      <SessionTimeoutWarning timeoutMinutes={30} warningMinutes={1} onTimeout={onLogout} />
+      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} onLogout={onLogout} />
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Header */}
-            <header className="h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 lg:px-6">
+            <header className="h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 lg:px-6 relative">
+              {showWelcome && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce">
+                  🎉 Welcome to {tenant?.name}! Your business is all set up.
+                </div>
+              )}
               <div className="lg:hidden w-10" />
               <HeaderContent onNavigate={(p) => setCurrentPage(p as Page)} />
             </header>
@@ -172,7 +195,16 @@ function AuthenticatedApp() {
               {renderPage()}
             </main>
           </div>
-        </div>
+    </div>
+  );
+}
+
+function AuthenticatedApp() {
+  const { signOut } = useAuth();
+  return (
+    <TenantProvider>
+      <ToastProvider>
+        <MainApp onLogout={signOut} />
       </ToastProvider>
     </TenantProvider>
   );

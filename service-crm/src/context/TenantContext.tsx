@@ -6,6 +6,8 @@ type TenantContextType = {
   tenants: Tenant[];
   setTenant: (tenant: Tenant) => void;
   loading: boolean;
+  needsSetup: boolean;
+  refreshTenants: () => Promise<void>;
 };
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
@@ -15,8 +17,8 @@ export function TenantProvider({ children, explicitTenantId }: { children: React
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTenants = async () => {
+  const fetchTenants = async () => {
+    setLoading(true);
       if (explicitTenantId) {
         // Public portal mode: fetch only the specified tenant
         const { data } = await supabase.from('tenants').select('*').eq('id', explicitTenantId).single();
@@ -34,10 +36,14 @@ export function TenantProvider({ children, explicitTenantId }: { children: React
           if (found) setTenant(found);
         }
       }
-      setLoading(false);
-    };
+    setLoading(false);
+  };
+
+  useEffect(() => {
     fetchTenants();
   }, [explicitTenantId]);
+
+  const needsSetup = !loading && tenants.length === 0;
 
   const handleSetTenant = (t: Tenant) => {
     setTenant(t);
@@ -45,7 +51,7 @@ export function TenantProvider({ children, explicitTenantId }: { children: React
   };
 
   return (
-    <TenantContext.Provider value={{ tenant, tenants, setTenant: handleSetTenant, loading }}>
+    <TenantContext.Provider value={{ tenant, tenants, setTenant: handleSetTenant, loading, needsSetup, refreshTenants: fetchTenants }}>
       {children}
     </TenantContext.Provider>
   );
