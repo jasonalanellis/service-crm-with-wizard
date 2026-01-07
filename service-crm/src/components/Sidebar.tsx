@@ -2,7 +2,7 @@ import { LayoutDashboard, Users, UserPlus, Calendar, CalendarCheck, FileText, St
 import { useTenant } from '../context/TenantContext';
 import { useState } from 'react';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'payment-history' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones' | 'email-templates' | 'sms-templates' | 'recurring-bookings' | 'revenue-forecast' | 'gift-cards' | 'customer-segments' | 'staff-certifications' | 'package-builder' | 'business-hours-exceptions' | 'customer-surveys' | 'knowledge-base' | 'capacity-planning' | 'price-rules' | 'deposits' | 'suppliers' | 'slas' | 'auto-scheduler' | 'resource-optimization' | 'performance-scorecard' | 'multi-location';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'providers-activity' | 'payouts' | 'invoices' | 'payment-history' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'review-dashboard' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones' | 'email-templates' | 'sms-templates' | 'recurring-bookings' | 'revenue-forecast' | 'gift-cards' | 'customer-segments' | 'staff-certifications' | 'package-builder' | 'business-hours-exceptions' | 'customer-surveys' | 'knowledge-base' | 'capacity-planning' | 'price-rules' | 'deposits' | 'suppliers' | 'slas' | 'auto-scheduler' | 'resource-optimization' | 'performance-scorecard' | 'multi-location';
 
 type SidebarProps = {
   currentPage: Page;
@@ -85,6 +85,7 @@ const navGroups: NavGroup[] = [
       { id: 'notifications', label: 'Notifications', icon: Bell },
       { id: 'follow-ups', label: 'Follow-Ups', icon: RefreshCw },
       { id: 'reviews', label: 'Reviews', icon: Star },
+      { id: 'review-dashboard', label: 'Review Requests', icon: Star },
       { id: 'customer-surveys', label: 'Surveys', icon: ClipboardList },
       { id: 'knowledge-base', label: 'Knowledge Base', icon: BookOpen },
     ]

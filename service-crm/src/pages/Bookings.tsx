@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, Appointment, Technician, Customer, Service } from '../lib/supabase';
 import { useTenant } from '../context/TenantContext';
 import { format, parseISO, startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns';
-import { Plus, ChevronLeft, ChevronRight, Search, Edit, Trash2, CheckSquare } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Search, Edit, Trash2, CheckSquare, Send } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ExportButton from '../components/ExportButton';
@@ -104,6 +104,30 @@ export default function Bookings() {
       setSelectedIds(new Set());
       setShowBatchUpdate(false);
       fetchData();
+    }
+  };
+
+  const sendReviewRequest = async (appointmentId: string) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-review-sms`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ appointment_id: appointmentId, manual_trigger: true }),
+        }
+      );
+      const result = await response.json();
+      if (result.success) {
+        showToast('Review SMS sent!', 'success');
+      } else {
+        showToast(result.message || 'Failed to send', 'error');
+      }
+    } catch (error) {
+      showToast('Failed to send review SMS', 'error');
     }
   };
 
@@ -308,6 +332,13 @@ export default function Bookings() {
                         <div className="flex items-center gap-2">
                           <button className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600">
                             <Edit size={16} />
+                          </button>
+                          <button 
+                            onClick={() => sendReviewRequest(booking.id)} 
+                            className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-green-600"
+                            title="Send Review SMS"
+                          >
+                            <Send size={16} />
                           </button>
                           <button onClick={() => setDeleteConfirmId(booking.id)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400 hover:text-red-600">
                             <Trash2 size={16} />

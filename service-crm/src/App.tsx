@@ -77,9 +77,10 @@ import AutoScheduler from './pages/AutoScheduler';
 import ResourceOptimization from './pages/ResourceOptimization';
 import PerformanceScorecard from './pages/PerformanceScorecard';
 import MultiLocationDashboard from './pages/MultiLocationDashboard';
+import ReviewDashboard from './pages/ReviewDashboard';
 import SetupWizard from './components/SetupWizard';
 
-type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'payment-history' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones' | 'email-templates' | 'sms-templates' | 'recurring-bookings' | 'revenue-forecast' | 'gift-cards' | 'customer-segments' | 'staff-certifications' | 'package-builder' | 'business-hours-exceptions' | 'customer-surveys' | 'knowledge-base' | 'capacity-planning' | 'price-rules' | 'deposits' | 'suppliers' | 'slas' | 'auto-scheduler' | 'resource-optimization' | 'performance-scorecard' | 'multi-location';
+type Page = 'dashboard' | 'bookings' | 'leads' | 'customers' | 'service-providers' | 'payouts' | 'invoices' | 'providers-activity' | 'coupons' | 'services' | 'marketing' | 'reports' | 'schedule' | 'quotes' | 'reviews' | 'review-dashboard' | 'settings' | 'notification-settings' | 'schedule-settings' | 'payment-settings' | 'portal-settings' | 'integration-settings' | 'payment-history' | 'inventory' | 'expenses' | 'waitlist' | 'locations' | 'payroll' | 'notifications' | 'messages' | 'loyalty' | 'custom-forms' | 'referrals' | 'follow-ups' | 'analytics' | 'tags' | 'team' | 'work-orders' | 'checklists' | 'contracts' | 'audit-log' | 'equipment' | 'service-zones' | 'email-templates' | 'sms-templates' | 'recurring-bookings' | 'revenue-forecast' | 'gift-cards' | 'customer-segments' | 'staff-certifications' | 'package-builder' | 'business-hours-exceptions' | 'customer-surveys' | 'knowledge-base' | 'capacity-planning' | 'price-rules' | 'deposits' | 'suppliers' | 'slas' | 'auto-scheduler' | 'resource-optimization' | 'performance-scorecard' | 'multi-location';
 
 function MainApp({ onLogout }: { onLogout: () => void }) {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -121,6 +122,7 @@ function MainApp({ onLogout }: { onLogout: () => void }) {
       case 'schedule': return <Schedule />;
       case 'quotes': return <Quotes />;
       case 'reviews': return <Reviews />;
+      case 'review-dashboard': return <ReviewDashboard />;
       case 'settings': return <Settings />;
       case 'notification-settings': return <NotificationSettings />;
       case 'schedule-settings': return <ScheduleSettings />;

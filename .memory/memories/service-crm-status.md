@@ -4,7 +4,7 @@
 
 ---
 ## URLS
-- Admin: https://zmkjq00dtbcq.space.minimax.io
+- Admin: https://foa8jvxtpqc5.space.minimax.io (latest)
 - Technician App: https://qpzi6faccegl.space.minimax.io
 - Booking Portal: https://4w71xzq5ogw8.space.minimax.io/?tenant=bravo-maids
 - Supabase: yglaxwekbyfjmbhcwqhi

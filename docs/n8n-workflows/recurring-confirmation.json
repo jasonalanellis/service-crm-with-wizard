@@ -1,0 +1,83 @@
+{
+  "name": "Recurring Appointment Confirmation (2 days before)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{"field": "hours", "hoursInterval": 24}]
+        }
+      },
+      "id": "schedule",
+      "name": "Daily at 10am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://yglaxwekbyfjmbhcwqhi.supabase.co/rest/v1/appointments",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "apikey", "value": "={{$credentials.supabaseKey}}"}
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {"name": "tenant_id", "value": "eq.YOUR_TENANT_ID"},
+            {"name": "scheduled_start", "value": "gte.{{$now.plus(2, 'days').startOf('day').toISO()}}"},
+            {"name": "scheduled_start", "value": "lt.{{$now.plus(3, 'days').startOf('day').toISO()}}"},
+            {"name": "status", "value": "eq.confirmed"},
+            {"name": "select", "value": "*,customer:customers(first_name,phone)"}
+          ]
+        }
+      },
+      "id": "getAppointments",
+      "name": "Get Upcoming Appointments",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1
+      },
+      "id": "loop",
+      "name": "Loop",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twilio.com/2010-04-01/Accounts/{{$credentials.twilioSid}}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {"name": "To", "value": "={{$json.customer.phone}}"},
+            {"name": "From", "value": "={{$credentials.twilioPhone}}"},
+            {"name": "Body", "value": "Hi {{$json.customer.first_name}}! Just a reminder - we'll see you on {{$json.scheduled_start | date('EEEE')}} at {{$json.scheduled_start | date('h:mm a')}}. Reply C to confirm or R to reschedule."}
+          ]
+        }
+      },
+      "id": "twilio",
+      "name": "Send Confirmation SMS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Daily at 10am": {"main": [[{"node": "Get Upcoming Appointments", "type": "main", "index": 0}]]},
+    "Get Upcoming Appointments": {"main": [[{"node": "Loop", "type": "main", "index": 0}]]},
+    "Loop": {"main": [[{"node": "Send Confirmation SMS", "type": "main", "index": 0}]]}
+  }
+}

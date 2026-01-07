@@ -1,0 +1,110 @@
+{
+  "name": "Smart Rebooking (14+ days)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{"field": "hours", "hoursInterval": 24}]
+        }
+      },
+      "id": "schedule",
+      "name": "Daily at 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://yglaxwekbyfjmbhcwqhi.supabase.co/rest/v1/rpc/get_inactive_customers",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "apikey", "value": "={{$credentials.supabaseKey}}"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "tenant_id", "value": "YOUR_TENANT_ID"},
+            {"name": "days_inactive", "value": "14"}
+          ]
+        }
+      },
+      "id": "supabase",
+      "name": "Get Inactive Customers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1
+      },
+      "id": "loop",
+      "name": "Loop Over Customers",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twilio.com/2010-04-01/Accounts/{{$credentials.twilioSid}}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {"name": "To", "value": "={{$json.phone}}"},
+            {"name": "From", "value": "={{$credentials.twilioPhone}}"},
+            {"name": "Body", "value": "Hi {{$json.first_name}}! It's been a while since your last clean. Ready to schedule your next one? Reply YES or book online!"}
+          ]
+        }
+      },
+      "id": "twilio",
+      "name": "Send SMS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://yglaxwekbyfjmbhcwqhi.supabase.co/rest/v1/automation_logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "apikey", "value": "={{$credentials.supabaseKey}}"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "tenant_id", "value": "YOUR_TENANT_ID"},
+            {"name": "automation_type", "value": "smart_rebooking"},
+            {"name": "customer_id", "value": "={{$json.id}}"},
+            {"name": "message_type", "value": "sms"},
+            {"name": "status", "value": "sent"}
+          ]
+        }
+      },
+      "id": "log",
+      "name": "Log to Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Daily at 9am": {"main": [[{"node": "Get Inactive Customers", "type": "main", "index": 0}]]},
+    "Get Inactive Customers": {"main": [[{"node": "Loop Over Customers", "type": "main", "index": 0}]]},
+    "Loop Over Customers": {"main": [[{"node": "Send SMS", "type": "main", "index": 0}]]},
+    "Send SMS": {"main": [[{"node": "Log to Supabase", "type": "main", "index": 0}]]}
+  }
+}

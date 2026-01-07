@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase, Tenant, Service, Technician } from '../lib/supabase';
 import { useTenant } from '../context/TenantContext';
 import { useToast } from '../context/ToastContext';
-import { Building2, Wrench, Users, MessageSquare, Plus, Edit2, Trash2, X, Save } from 'lucide-react';
+import { Building2, Wrench, Users, MessageSquare, Plus, Edit2, Trash2, X, Save, Palette, Star } from 'lucide-react';
 
-type Tab = 'business' | 'services' | 'technicians' | 'templates';
+type Tab = 'business' | 'branding' | 'reviews' | 'services' | 'technicians' | 'templates';
 
 export default function Settings() {
   const { tenant, setTenant } = useTenant();
@@ -16,6 +16,8 @@ export default function Settings() {
 
   const tabs = [
     { id: 'business' as Tab, label: 'Business Profile', icon: Building2 },
+    { id: 'branding' as Tab, label: 'Branding', icon: Palette },
+    { id: 'reviews' as Tab, label: 'Review Settings', icon: Star },
     { id: 'services' as Tab, label: 'Services', icon: Wrench },
     { id: 'technicians' as Tab, label: 'Technicians', icon: Users },
     { id: 'templates' as Tab, label: 'SMS Templates', icon: MessageSquare },
@@ -46,6 +48,8 @@ export default function Settings() {
       </div>
 
       {activeTab === 'business' && <BusinessProfile tenant={tenant} onUpdate={setTenant} />}
+      {activeTab === 'branding' && <BrandingSettings tenant={tenant} onUpdate={setTenant} />}
+      {activeTab === 'reviews' && <ReviewSettings tenant={tenant} onUpdate={setTenant} />}
       {activeTab === 'services' && <ServicesManager tenantId={tenant.id} />}
       {activeTab === 'technicians' && <TechniciansManager tenantId={tenant.id} />}
       {activeTab === 'templates' && <SMSTemplates />}
@@ -394,6 +398,174 @@ function TechnicianForm({ technician, tenantId, onClose, onSave }: {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function BrandingSettings({ tenant, onUpdate }: { tenant: Tenant; onUpdate: (t: Tenant) => void }) {
+  const { showToast } = useToast();
+  const [form, setForm] = useState({
+    brand_color: (tenant as any).brand_color || '#2563eb',
+    logo_url: (tenant as any).logo_url || '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { data, error } = await supabase
+      .from('tenants')
+      .update(form)
+      .eq('id', tenant.id)
+      .select()
+      .single();
+    if (error) showToast('Failed to update', 'error');
+    else {
+      showToast('Branding updated', 'success');
+      if (data) onUpdate(data);
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border p-6 max-w-lg">
+      <h2 className="text-lg font-semibold mb-4">Branding</h2>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Brand Color</label>
+          <div className="flex gap-3 items-center">
+            <input
+              type="color"
+              value={form.brand_color}
+              onChange={e => setForm(f => ({ ...f, brand_color: e.target.value }))}
+              className="w-16 h-10 border rounded cursor-pointer"
+            />
+            <input
+              value={form.brand_color}
+              onChange={e => setForm(f => ({ ...f, brand_color: e.target.value }))}
+              className="border rounded-lg px-3 py-2 w-32 font-mono"
+              placeholder="#37c170"
+            />
+            <div className="px-4 py-2 rounded text-white text-sm" style={{ backgroundColor: form.brand_color }}>
+              Preview
+            </div>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
+          <input
+            value={form.logo_url}
+            onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))}
+            className="w-full border rounded-lg px-3 py-2"
+            placeholder="https://example.com/logo.png"
+          />
+          {form.logo_url && (
+            <img src={form.logo_url} alt="Logo preview" className="mt-2 h-16 object-contain" />
+          )}
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          <Save size={18} />
+          {saving ? 'Saving...' : 'Save Changes'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ReviewSettings({ tenant, onUpdate }: { tenant: Tenant; onUpdate: (t: Tenant) => void }) {
+  const { showToast } = useToast();
+  const [form, setForm] = useState({
+    review_sms_enabled: (tenant as any).review_sms_enabled ?? true,
+    gbp_review_link: (tenant as any).gbp_review_link || '',
+    owner_name: (tenant as any).owner_name || '',
+    owner_phone: (tenant as any).owner_phone || '',
+    stock_cleaner_image_url: (tenant as any).stock_cleaner_image_url || '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { data, error } = await supabase
+      .from('tenants')
+      .update(form)
+      .eq('id', tenant.id)
+      .select()
+      .single();
+    if (error) showToast('Failed to update', 'error');
+    else {
+      showToast('Review settings updated', 'success');
+      if (data) onUpdate(data);
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border p-6 max-w-lg">
+      <h2 className="text-lg font-semibold mb-4">Review Request Settings</h2>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div>
+            <p className="font-medium text-gray-800">Auto-send Review SMS</p>
+            <p className="text-sm text-gray-500">Send review request when job is completed</p>
+          </div>
+          <button
+            onClick={() => setForm(f => ({ ...f, review_sms_enabled: !f.review_sms_enabled }))}
+            className={`w-12 h-6 rounded-full transition-colors ${form.review_sms_enabled ? 'bg-green-500' : 'bg-gray-300'}`}
+          >
+            <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${form.review_sms_enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+          </button>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Google Business Review Link</label>
+          <input
+            value={form.gbp_review_link}
+            onChange={e => setForm(f => ({ ...f, gbp_review_link: e.target.value }))}
+            className="w-full border rounded-lg px-3 py-2"
+            placeholder="https://g.page/r/xxx/review"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name (for callbacks)</label>
+            <input
+              value={form.owner_name}
+              onChange={e => setForm(f => ({ ...f, owner_name: e.target.value }))}
+              className="w-full border rounded-lg px-3 py-2"
+              placeholder="Jason"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Owner Phone</label>
+            <input
+              value={form.owner_phone}
+              onChange={e => setForm(f => ({ ...f, owner_phone: e.target.value }))}
+              className="w-full border rounded-lg px-3 py-2"
+              placeholder="+16185817272"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Stock Cleaner Image URL</label>
+          <input
+            value={form.stock_cleaner_image_url}
+            onChange={e => setForm(f => ({ ...f, stock_cleaner_image_url: e.target.value }))}
+            className="w-full border rounded-lg px-3 py-2"
+            placeholder="https://example.com/cleaner.jpg"
+          />
+          <p className="text-xs text-gray-500 mt-1">Used in review request SMS with cleaner's name</p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          <Save size={18} />
+          {saving ? 'Saving...' : 'Save Changes'}
+        </button>
       </div>
     </div>
   );
