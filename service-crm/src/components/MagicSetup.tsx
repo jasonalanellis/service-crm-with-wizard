@@ -1,11 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   ArrowRight, ArrowLeft, Check, Upload, X, 
   Sparkles, Home, Leaf, Droplet, MoreHorizontal,
   Briefcase, Car, Wrench, Building, Scissors, Camera, Zap,
-  Phone, MessageSquare, ExternalLink, HelpCircle
+  Phone, MessageSquare, ExternalLink, HelpCircle, Copy,
+  Share2, QrCode as QrCodeIcon, Send, Gift, Users
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import Confetti from 'react-confetti';
+import { QRCodeSVG } from 'qrcode.react';
+import { FacebookShareButton, TwitterShareButton, LinkedinShareButton, WhatsappShareButton, FacebookIcon, TwitterIcon, LinkedinIcon, WhatsappIcon } from 'react-share';
+
+const STORAGE_KEY = 'magic_setup_progress';
 
 // Industry configurations with pre-set services
 const INDUSTRIES = {
@@ -145,24 +151,100 @@ export default function MagicSetup({ onComplete }: Props) {
   const [showMigrateUpsell, setShowMigrateUpsell] = useState(false);
   const [smsSent, setSmsSent] = useState(false);
   const [bookingUrl, setBookingUrl] = useState('');
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [invitePhone, setInvitePhone] = useState('');
+  const [inviteSent, setInviteSent] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [invitePhone, setInvitePhone] = useState('');
+  const [inviteSent, setInviteSent] = useState(false);
+  const [tenantId, setTenantId] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [data, setData] = useState<SetupData>({
-    industry: '',
-    businessName: '',
-    address: '',
-    phone: '',
-    brandColor: '#37c170',
-    logoUrl: null,
-    services: [],
-    contactPhone: '',
-    email: '',
-    password: '',
+  // Initialize state from localStorage or defaults
+  const [data, setData] = useState<SetupData>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...parsed.data };
+      }
+    } catch (e) { /* ignore */ }
+    return {
+      industry: '',
+      businessName: '',
+      address: '',
+      phone: '',
+      brandColor: '#37c170',
+      logoUrl: null,
+      services: [],
+      contactPhone: '',
+      email: '',
+      password: '',
+    };
   });
+
+  // Restore step from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.step && parsed.step < 7) setStep(parsed.step);
+      }
+    } catch (e) { /* ignore */ }
+  }, []);
+
+  // Auto-save progress to localStorage
+  useEffect(() => {
+    if (step < 7) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data }));
+    }
+  }, [step, data]);
 
   const TOTAL_STEPS = 7;
   const mainIndustries = ['residential-cleaning', 'lawn-care', 'pool-service'];
   const otherIndustries = Object.keys(INDUSTRIES).filter(k => !mainIndustries.includes(k));
+
+  // Copy to clipboard
+  const copyToClipboard = useCallback(async () => {
+    await navigator.clipboard.writeText(bookingUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [bookingUrl]);
+
+  // Share via WhatsApp
+  const shareWhatsApp = useCallback(() => {
+    const text = encodeURIComponent(`Book with us online: ${bookingUrl}`);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  }, [bookingUrl]);
+
+  // Share via SMS
+  const shareSms = useCallback(() => {
+    const text = encodeURIComponent(`Book with us online: ${bookingUrl}`);
+    window.open(`sms:?body=${text}`, '_blank');
+  }, [bookingUrl]);
+
+  // Invite a customer
+  const sendInvite = async () => {
+    if (!invitePhone) return;
+    try {
+      await supabase.functions.invoke('send-sms', {
+        body: {
+          phone: invitePhone,
+          message: `${data.businessName} is now accepting online bookings! Book now: ${bookingUrl}`,
+          bookingUrl
+        }
+      });
+      setInviteSent(true);
+    } catch (e) {
+      console.error('Invite error:', e);
+    }
+  };
+
+  // Generate QR code URL (using QR code API)
+  const qrCodeUrl = bookingUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(bookingUrl)}` : '';
 
   // Parse GBP URL to extract business info using Google Places API
   const parseGbpUrl = async (url: string) => {
@@ -347,9 +429,16 @@ export default function MagicSetup({ onComplete }: Props) {
       // Set booking URL
       const url = `${window.location.origin}/book?tenant=${tenantData.id}`;
       setBookingUrl(url);
+      setTenantId(tenantData.id);
 
+      // Clear setup progress from localStorage
+      localStorage.removeItem(STORAGE_KEY);
       localStorage.setItem('setupComplete', 'true');
       localStorage.setItem('selectedTenantId', tenantData.id);
+      
+      // Trigger confetti!
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 5000);
       
       setStep(7); // Go to final step with booking link
     } catch (err: any) {
@@ -604,78 +693,154 @@ export default function MagicSetup({ onComplete }: Props) {
             {step === 2 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Got a Google Business Profile?</h2>
-                  <p className="text-gray-500 mt-1">Paste your link and we'll auto-fill your details</p>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {showManualEntry ? 'Tell us about your business' : 'Got a Google Business Profile?'}
+                  </h2>
+                  <p className="text-gray-500 mt-1">
+                    {showManualEntry ? 'Enter your business details manually' : 'Paste your link and we\'ll auto-fill your details'}
+                  </p>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Google Business Profile URL
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="url"
-                        value={gbpUrl}
-                        onChange={(e) => setGbpUrl(e.target.value)}
-                        placeholder="https://www.google.com/maps/place/..."
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                      {gbpLoading && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <div className="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full" />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-2">
-                      <ExternalLink size={12} className="inline mr-1" />
-                      Find your profile on Google Maps and copy the URL
-                    </p>
-                  </div>
-
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-200" />
-                    </div>
-                    <div className="relative flex justify-center">
-                      <span className="bg-white px-3 text-sm text-gray-400">or enter manually</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Business Name *</label>
-                    <input
-                      type="text"
-                      value={data.businessName}
-                      onChange={(e) => setData(prev => ({ ...prev, businessName: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500"
-                      placeholder="Your Business Name"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {!showManualEntry ? (
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                      <input
-                        type="tel"
-                        value={data.phone}
-                        onChange={(e) => setData(prev => ({ ...prev, phone: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500"
-                        placeholder="(555) 123-4567"
-                      />
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Google Business Profile URL
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="url"
+                          value={gbpUrl}
+                          onChange={(e) => setGbpUrl(e.target.value)}
+                          placeholder="https://www.google.com/maps/place/..."
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
+                        />
+                        {gbpLoading && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <div className="animate-spin h-5 w-5 border-2 border-t-transparent rounded-full" style={{ borderColor: data.brandColor }} />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-400 mt-2">
+                        <ExternalLink size={12} className="inline mr-1" />
+                        Find your profile on Google Maps and copy the URL
+                      </p>
                     </div>
+
+                    <button
+                      onClick={() => setShowManualEntry(true)}
+                      className="text-sm hover:underline"
+                      style={{ color: data.brandColor }}
+                    >
+                      I don't have a Google page yet
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Business Name *</label>
                       <input
                         type="text"
-                        value={data.address}
-                        onChange={(e) => setData(prev => ({ ...prev, address: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500"
-                        placeholder="123 Main St, City"
+                        value={data.businessName}
+                        onChange={(e) => setData(prev => ({ ...prev, businessName: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
+                        placeholder="Your Business Name"
+                        autoFocus
                       />
                     </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <input
+                          type="tel"
+                          value={data.phone}
+                          onChange={(e) => setData(prev => ({ ...prev, phone: e.target.value }))}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <input
+                          type="text"
+                          value={data.address}
+                          onChange={(e) => setData(prev => ({ ...prev, address: e.target.value }))}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
+                          placeholder="123 Main St, City"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowManualEntry(false)}
+                      className="text-sm text-gray-500 hover:underline"
+                    >
+                      I have a Google Business Profile
+                    </button>
                   </div>
-                </div>
+                )}
+
+                {/* Show autofilled data if GBP worked */}
+                {!showManualEntry && data.businessName && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <Check size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <div className="font-medium text-green-900">Found: {data.businessName}</div>
+                        {data.address && <p className="text-sm text-green-700 mt-1">{data.address}</p>}
+                        {data.phone && <p className="text-sm text-green-700">{data.phone}</p>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Fallback: show manual fields below GBP if nothing entered */}
+                {!showManualEntry && !data.businessName && (
+                  <>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Business Name *</label>
+                      <input
+                        type="text"
+                        value={data.businessName}
+                        onChange={(e) => setData(prev => ({ ...prev, businessName: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
+                        placeholder="Your Business Name"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <input
+                          type="tel"
+                          value={data.phone}
+                          onChange={(e) => setData(prev => ({ ...prev, phone: e.target.value }))}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <input
+                          type="text"
+                          value={data.address}
+                          onChange={(e) => setData(prev => ({ ...prev, address: e.target.value }))}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': data.brandColor } as React.CSSProperties}
+                          placeholder="123 Main St, City"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -920,6 +1085,17 @@ export default function MagicSetup({ onComplete }: Props) {
             {/* Step 7: Get Your Link */}
             {step === 7 && (
               <div className="space-y-6">
+                {/* Confetti celebration */}
+                {showConfetti && (
+                  <Confetti
+                    width={window.innerWidth}
+                    height={window.innerHeight}
+                    recycle={false}
+                    numberOfPieces={300}
+                    colors={[data.brandColor, '#22c55e', '#3b82f6', '#f59e0b', '#ec4899']}
+                  />
+                )}
+
                 <div className="text-center">
                   <div 
                     className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center"
@@ -927,14 +1103,14 @@ export default function MagicSetup({ onComplete }: Props) {
                   >
                     <Sparkles size={36} style={{ color: data.brandColor }} />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Your booking page is live!</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">🎉 Your booking page is live!</h2>
                   <p className="text-gray-500 mt-1">Share your link and start accepting bookings</p>
                 </div>
 
-                {/* Booking Link */}
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                {/* Booking Link with prominent Copy button */}
+                <div className="rounded-xl p-5 border-2" style={{ borderColor: data.brandColor, backgroundColor: `${data.brandColor}08` }}>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Your booking link</label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mb-3">
                     <input
                       type="text"
                       value={bookingUrl}
@@ -942,11 +1118,90 @@ export default function MagicSetup({ onComplete }: Props) {
                       className="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm font-mono"
                     />
                     <button
-                      onClick={() => navigator.clipboard.writeText(bookingUrl)}
-                      className="px-4 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium"
+                      onClick={() => {
+                        navigator.clipboard.writeText(bookingUrl);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="px-6 py-3 rounded-lg text-white font-medium flex items-center gap-2 transition-all"
+                      style={{ backgroundColor: copied ? '#22c55e' : data.brandColor }}
                     >
-                      Copy
+                      {copied ? <Check size={18} /> : <Copy size={18} />}
+                      {copied ? 'Copied!' : 'Copy Link'}
                     </button>
+                  </div>
+
+                  {/* QR Code */}
+                  <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
+                    <div className="bg-white p-2 rounded-lg shadow-sm">
+                      <QRCodeSVG value={bookingUrl} size={80} fgColor={data.brandColor} />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900 flex items-center gap-2">
+                        <QrCodeIcon size={16} /> QR Code
+                      </div>
+                      <p className="text-sm text-gray-500">Customers can scan to book instantly</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Share Buttons */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Share2 size={16} /> Share on social
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <FacebookShareButton url={bookingUrl} hashtag="#BookNow">
+                      <FacebookIcon size={40} round />
+                    </FacebookShareButton>
+                    <TwitterShareButton url={bookingUrl} title={`Book with ${data.businessName}!`}>
+                      <TwitterIcon size={40} round />
+                    </TwitterShareButton>
+                    <LinkedinShareButton url={bookingUrl} title={`Book with ${data.businessName}`}>
+                      <LinkedinIcon size={40} round />
+                    </LinkedinShareButton>
+                    <WhatsappShareButton url={bookingUrl} title={`Book with ${data.businessName}!`}>
+                      <WhatsappIcon size={40} round />
+                    </WhatsappShareButton>
+                  </div>
+                </div>
+
+                {/* Invite First Customer */}
+                <div className="rounded-xl p-4 border border-green-200 bg-green-50">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <Users size={20} className="text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-green-900">Invite your first customer!</div>
+                      <p className="text-sm text-green-700 mt-1 mb-3">
+                        Send your booking link to a customer and watch the magic happen.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="tel"
+                          value={invitePhone}
+                          onChange={(e) => setInvitePhone(e.target.value)}
+                          placeholder="Customer's phone number"
+                          className="flex-1 px-3 py-2 border border-green-300 rounded-lg text-sm bg-white"
+                        />
+                        <button
+                          onClick={async () => {
+                            if (!invitePhone) return;
+                            setLoading(true);
+                            await supabase.functions.invoke('send-sms', {
+                              body: { phone: invitePhone, message: `Book your appointment with ${data.businessName}: ${bookingUrl}` }
+                            });
+                            setLoading(false);
+                            setInviteSent(true);
+                          }}
+                          disabled={loading || inviteSent || !invitePhone}
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                        >
+                          {inviteSent ? <><Check size={16} /> Sent!</> : <><Send size={16} /> Send Invite</>}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
