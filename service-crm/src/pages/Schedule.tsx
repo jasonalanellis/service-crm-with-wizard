@@ -407,7 +407,7 @@ function AppointmentForm({ appointment, tenantId, customers, technicians, servic
             <input type="datetime-local" value={form.scheduled_start} onChange={e => setForm(f => ({ ...f, scheduled_start: e.target.value }))} className="border rounded-lg px-3 py-2" />
             <input type="number" placeholder="Duration (min)" value={form.duration_minutes} onChange={e => setForm(f => ({ ...f, duration_minutes: parseInt(e.target.value) || 60 }))} className="border rounded-lg px-3 py-2" />
           </div>
-          <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className="w-full border rounded-lg px-3 py-2">
+          <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as typeof f.status }))} className="w-full border rounded-lg px-3 py-2">
             <option value="scheduled">Scheduled</option>
             <option value="in_progress">In Progress</option>
             <option value="completed">Completed</option>
