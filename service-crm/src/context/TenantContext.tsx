@@ -29,11 +29,14 @@ export function TenantProvider({ children, explicitTenantId }: { children: React
       } else {
         // Admin mode: fetch all tenants user has access to
         const { data } = await supabase.from('tenants').select('*').order('name');
-        if (data) {
+        if (data && data.length > 0) {
           setTenants(data);
           const saved = localStorage.getItem('selectedTenantId');
           const found = data.find(t => t.id === saved);
-          if (found) setTenant(found);
+          // Auto-select first tenant if none saved or saved not found
+          const selectedTenant = found || data[0];
+          setTenant(selectedTenant);
+          localStorage.setItem('selectedTenantId', selectedTenant.id);
         }
       }
     setLoading(false);
