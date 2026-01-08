@@ -159,6 +159,7 @@ export default function MagicSetup({ onComplete }: Props) {
   const [invitePhone, setInvitePhone] = useState('');
   const [inviteSent, setInviteSent] = useState(false);
   const [tenantId, setTenantId] = useState('');
+  const [countdown, setCountdown] = useState(8);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Initialize state from localStorage or defaults
@@ -371,10 +372,24 @@ export default function MagicSetup({ onComplete }: Props) {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        }
       });
 
       if (authError) throw authError;
       if (!authData.user) throw new Error('Failed to create account');
+
+      // Auto-login immediately after signup (skip email confirmation for better UX)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (signInError) {
+        console.warn('Auto-login failed, user may need to verify email:', signInError.message);
+        // Don't throw - account was created, just login failed
+      }
 
       // 2. Create tenant
       const { data: tenantData, error: tenantError } = await supabase
@@ -449,8 +464,21 @@ export default function MagicSetup({ onComplete }: Props) {
       // Trigger confetti!
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 5000);
-      
+
       setStep(7); // Go to final step with booking link
+
+      // Start countdown and auto-redirect
+      setCountdown(8);
+      const countdownInterval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            onComplete();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (err: any) {
       console.error('Setup error:', err);
       setError(err.message || 'Failed to complete setup');
@@ -1303,10 +1331,15 @@ export default function MagicSetup({ onComplete }: Props) {
                 {/* Continue to Dashboard */}
                 <button
                   onClick={onComplete}
-                  className="w-full py-4 rounded-xl text-white font-medium text-lg"
+                  className="w-full py-4 rounded-xl text-white font-medium text-lg flex items-center justify-center gap-2"
                   style={{ backgroundColor: data.brandColor }}
                 >
                   Go to Dashboard
+                  {countdown > 0 && (
+                    <span className="bg-white/20 px-2 py-0.5 rounded text-sm">
+                      {countdown}s
+                    </span>
+                  )}
                 </button>
               </div>
             )}
