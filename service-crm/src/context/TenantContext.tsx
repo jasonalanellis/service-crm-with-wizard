@@ -27,16 +27,39 @@ export function TenantProvider({ children, explicitTenantId }: { children: React
           setTenant(data);
         }
       } else {
-        // Admin mode: fetch all tenants user has access to
-        const { data } = await supabase.from('tenants').select('*').order('name');
-        if (data && data.length > 0) {
-          setTenants(data);
-          const saved = localStorage.getItem('selectedTenantId');
-          const found = data.find(t => t.id === saved);
-          // Auto-select first tenant if none saved or saved not found
-          const selectedTenant = found || data[0];
-          setTenant(selectedTenant);
-          localStorage.setItem('selectedTenantId', selectedTenant.id);
+        // Admin mode: fetch only tenants the user has access to via user_profiles
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        // Get tenant IDs the user has access to
+        const { data: profiles } = await supabase
+          .from('user_profiles')
+          .select('tenant_id')
+          .eq('auth_id', user.id);
+
+        if (profiles && profiles.length > 0) {
+          const tenantIds = profiles.map(p => p.tenant_id).filter(Boolean);
+
+          if (tenantIds.length > 0) {
+            const { data } = await supabase
+              .from('tenants')
+              .select('*')
+              .in('id', tenantIds)
+              .order('name');
+
+            if (data && data.length > 0) {
+              setTenants(data);
+              const saved = localStorage.getItem('selectedTenantId');
+              const found = data.find(t => t.id === saved);
+              // Auto-select first tenant if none saved or saved not found
+              const selectedTenant = found || data[0];
+              setTenant(selectedTenant);
+              localStorage.setItem('selectedTenantId', selectedTenant.id);
+            }
+          }
         }
       }
     setLoading(false);
