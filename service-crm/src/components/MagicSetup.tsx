@@ -405,7 +405,7 @@ export default function MagicSetup({ onComplete }: Props) {
             logo_url: data.logoUrl,
             address: data.address,
             founding_member: data.foundingMember,
-            trial_days: data.foundingMember ? 90 : 30,
+            trial_days: data.foundingMember ? 90 : 14,
             business_hours: {
               monday: { enabled: true, open: '09:00', close: '17:00' },
               tuesday: { enabled: true, open: '09:00', close: '17:00' },
@@ -659,7 +659,7 @@ export default function MagicSetup({ onComplete }: Props) {
           </div>
           <div className="hidden sm:flex items-center gap-2 text-sm text-green-600 font-medium">
             <Sparkles size={16} />
-            No credit card required - 30 days free
+            No credit card required - 14 days free
           </div>
         </div>
       </header>
@@ -1399,7 +1399,7 @@ export default function MagicSetup({ onComplete }: Props) {
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <div className="flex items-center gap-2 text-sm text-green-600 font-medium justify-center">
           <Sparkles size={16} />
-          No credit card required - 30 days free
+          No credit card required - 14 days free
         </div>
       </div>
     </div>
