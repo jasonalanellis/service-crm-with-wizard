@@ -368,28 +368,42 @@ export default function MagicSetup({ onComplete }: Props) {
     setError('');
 
     try {
-      // 1. Create user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          emailRedirectTo: window.location.origin,
+      // 1. Create user account (server-side)
+      const signupRes = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: data.email, password: data.password, name: data.businessName }),
+      });
+      const signupData = await signupRes.json();
+      if (!signupRes.ok) throw new Error(signupData.error || 'Failed to create account');
+
+      // If signup didn't auto-login (email confirmation required), try explicit login
+      let sessionData = signupData.session;
+      if (signupData.confirmationRequired || !signupData.user) {
+        const loginRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email: data.email, password: data.password }),
+        });
+        if (loginRes.ok) {
+          const loginData = await loginRes.json();
+          sessionData = loginData.session;
+        } else {
+          console.warn('Auto-login failed, user may need to verify email');
         }
-      });
-
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Failed to create account');
-
-      // Auto-login immediately after signup (skip email confirmation for better UX)
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
-
-      if (signInError) {
-        console.warn('Auto-login failed, user may need to verify email:', signInError.message);
-        // Don't throw - account was created, just login failed
       }
+
+      // Sync Supabase client session so data queries work with RLS
+      if (sessionData?.access_token && sessionData?.refresh_token) {
+        await supabase.auth.setSession({
+          access_token: sessionData.access_token,
+          refresh_token: sessionData.refresh_token,
+        });
+      }
+
+      const authData = { user: signupData.user || { id: '' } };
 
       // 2. Create tenant
       const { data: tenantData, error: tenantError } = await supabase

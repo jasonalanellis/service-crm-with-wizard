@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase, Tenant } from '../lib/supabase';
+import { useAuth } from './AuthContext';
 
 type TenantContextType = {
   tenant: Tenant | null;
@@ -13,6 +14,7 @@ type TenantContextType = {
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
 export function TenantProvider({ children, explicitTenantId }: { children: ReactNode; explicitTenantId?: string | null }) {
+  const authContext = useAuth();
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,7 @@ export function TenantProvider({ children, explicitTenantId }: { children: React
         }
       } else {
         // Admin mode: fetch only tenants the user has access to via user_profiles
-        const { data: { user } } = await supabase.auth.getUser();
+        const user = authContext?.user;
         if (!user) {
           setLoading(false);
           return;
@@ -67,7 +69,7 @@ export function TenantProvider({ children, explicitTenantId }: { children: React
 
   useEffect(() => {
     fetchTenants();
-  }, [explicitTenantId]);
+  }, [explicitTenantId, authContext?.user?.id]);
 
   const needsSetup = !loading && tenants.length === 0;
 
